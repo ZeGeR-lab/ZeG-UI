@@ -1,0 +1,3 @@
+ZeG UI 0.4.6
+All Lua sources compile; all 64 simulated runtime scenarios passed.
+Includes /zeg and legacy alias assertions, minimap launcher Settings/Trackers actions, and native tracker simulation. Not tested in the live WoW client.

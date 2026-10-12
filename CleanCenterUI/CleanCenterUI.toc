@@ -1,0 +1,26 @@
+## Interface: 16001
+## Title: ZeG UI
+## Notes: A quiet, centered HUD. Applies its preset on first login; choose one to eight action bars.
+## Author: ZeG UI
+## Version: 0.4.6
+## SavedVariables: CleanCenterUIProfilesDB
+## SavedVariablesPerCharacter: CleanCenterUIDB
+
+Core.lua
+Diagnostics.lua
+Customization.lua
+Profiles.lua
+NativeBars.lua
+Units.lua
+ButtonShapes.lua
+Layout.lua
+Minimap.lua
+Stances.lua
+Utility.lua
+Appearance.lua
+Presentation.lua
+DamageMeters.lua
+Trackers.lua
+CustomizeSettings.lua
+Settings.lua
+Launcher.lua
