@@ -1,13 +1,13 @@
 # ZeG UI
 
-Full WoW Forever UI. Current test build: **0.4.8**.
+Full WoW Forever UI. Current test build: **0.4.9**.
 
 ## Installation
 
 Download [ZeG-UI.zip](https://github.com/ZeGeR-lab/ZeG-UI/raw/refs/heads/main/ZeG-UI.zip). Extract its `CleanCenterUI` folder into `Interface/AddOns` and reload WoW. Replace the existing folder; do not install a duplicate. The legacy folder name is retained to preserve saved layouts.
 
 - `/zeg`: open settings.
-- `/zeg setup`: guided Blizzard tracker setup with previews and saved group styling.
+- `/zeg setup`: guided tracker setup with framed, minimal, round and tile skins, preview, opacity and timer controls.
 - Minimap button: left-click Settings; right-click Trackers.
 - `/zeg trackers`: style and move available native Blizzard tracker groups.
 - `/ccui`: compatibility alias.

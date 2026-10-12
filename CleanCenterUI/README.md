@@ -199,3 +199,8 @@ Run `/zeg setup`, or select **Guided tracker setup** in `/zeg trackers`.
 3. Enable tracking and choose spells/visibility/available alerts in Blizzard's editor.
 4. Save style and unlock placement; `/zeg lock` finishes movement.
 Draft changes stay local to the wizard until Save. Repeat for other groups. This assistant does not automatically select spells or create a new tracking engine. Sounds, popup-style native alerts and active visibility are available only where Blizzard's editor exposes them; custom fades/popups are not included.
+
+
+### Group display skins (0.4.9)
+Run `/zeg setup`, choose a group and proceed to its preview. Cycle **Skin** through framed, minimal, round and tiles. Adjust scale, timer/text size, group background and its opacity. Icon groups also offer a countdown visibility toggle when supported by the native widget. Save to apply; repeat for other groups.
+Buff bars use flat native-color fills in minimal mode or HUD accent fills in other modes. Round mode rounds the bar's spell icon. Disable a group skin to restore original masks, fills and timer visibility. These options style existing native viewers; orientation/spacing remain in Blizzard Edit Mode, and spells stay in the native group selected in Blizzard's editor.

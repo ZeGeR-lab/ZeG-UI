@@ -8,6 +8,46 @@ ns.trackerGroups = {
     {key = "bars", name = "BuffBarCooldownViewer", label = "Buff bars"},
 }
 local groups, decorations, fonts, artwork = {}, {}, {}, {}
+local shaped, fills, countdowns, maskCache = {}, {}, {}, {}
+local media = "Interface\\AddOns\\CleanCenterUI\\Media\\"
+local function ShapeTexture(texture, anchor, round)
+    if not texture or not texture.AddMaskTexture or not texture.GetParent then return end
+    local record = shaped[texture]
+    if not record then
+        local parent = texture:GetParent()
+        if not parent or not parent.CreateMaskTexture then return end
+        record = {native = {}, coords = texture.GetTexCoord and {texture:GetTexCoord()} or nil}
+        if texture.GetNumMaskTextures and texture.GetMaskTexture then
+            local count = texture:GetNumMaskTextures()
+            if ns.Finite(count) then
+                for i = 1, count do record.native[#record.native+1] = texture:GetMaskTexture(i) end
+            end
+        end
+        record.mask = maskCache[texture]
+        if not record.mask then
+            record.mask = parent:CreateMaskTexture(nil, "ARTWORK") maskCache[texture] = record.mask
+        end
+        record.mask:SetAllPoints(anchor)
+        shaped[texture] = record
+        for _, mask in ipairs(record.native) do texture:RemoveMaskTexture(mask) end
+        texture:AddMaskTexture(record.mask)
+    end
+    record.mask:SetTexture(round and media .. "CircleMask.tga" or ns.WHITE, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+end
+local function FlatFill(bar, style)
+    if not bar or not bar.GetStatusBarTexture then return end
+    local texture = bar:GetStatusBarTexture()
+    if not texture or not texture.GetTexture or not texture.GetVertexColor then return end
+    if not fills[texture] then
+        local atlas = texture.GetAtlas and texture:GetAtlas()
+        fills[texture] = {texture = texture:GetTexture(), atlas = ns.Readable(atlas) and atlas or nil,
+            color = {texture:GetVertexColor()}, coords = {texture:GetTexCoord()}}
+    end
+    texture:SetTexture(ns.WHITE) texture:SetTexCoord(0, 1, 0, 1)
+    if style.skin == "minimal" then texture:SetVertexColor(unpack(fills[texture].color))
+    else texture:SetVertexColor(unpack(ns.db.colors.accent)) end
+end
+
 local function Usable(frame)
     return frame and (not frame.IsForbidden or not frame:IsForbidden())
 end
@@ -78,11 +118,42 @@ local function SkinTree(frame, depth, owner, style)
     end
     if frame.Icon and (frame.Cooldown or frame.Bar) then
         local record = decorations[frame]
-        if not record then record = {edges = Borders(frame), owner = owner} decorations[frame] = record end
-        local c = ns.db.colors.border
-        for _, edge in ipairs(record.edges) do
-            edge:SetColorTexture(c[1], c[2], c[3], ns.db.borders and c[4] or 0) edge:Show()
+        if not record then
+            record = {edges = Borders(frame), owner = owner}
+            record.ring = frame:CreateTexture(nil, "OVERLAY", nil, 7)
+            local anchor = frame.Bar and frame.Icon or frame
+            record.ring:SetAllPoints(anchor) record.ring:SetTexture(media .. "CircleBorder.tga")
+            record.tile = frame:CreateTexture(nil, "BACKGROUND", nil, -1) record.tile:SetAllPoints(frame)
+            decorations[frame] = record
         end
+        local round, c = style.skin == "round", ns.db.colors.border
+        local bordered = ns.db.borders and style.skin ~= "minimal"
+        for _, edge in ipairs(record.edges) do
+            edge:SetColorTexture(c[1], c[2], c[3], bordered and c[4] or 0)
+            edge:SetShown(not round or frame.Bar ~= nil)
+        end
+        record.ring:SetVertexColor(c[1], c[2], c[3], bordered and c[4] or 0)
+        record.ring:SetShown(round)
+        record.tile:SetColorTexture(unpack(ns.db.colors.barBackground))
+        record.tile:SetShown(style.skin == "tiles")
+        local icon = frame.Icon.Icon or frame.Icon
+        local anchor = frame.Bar and frame.Icon or frame
+        ShapeTexture(icon, anchor, round)
+        if frame.Cooldown then
+            local cooldown = frame.Cooldown
+            if cooldown.GetSwipeTexture then
+                local swipe = cooldown:GetSwipeTexture()
+                if type(swipe) ~= "string" then ShapeTexture(swipe, anchor, round) end
+            end
+            if cooldown.GetHideCountdownNumbers and cooldown.SetHideCountdownNumbers then
+                local hidden = cooldown:GetHideCountdownNumbers()
+                if ns.Readable(hidden) then
+                    countdowns[cooldown] = hidden
+                    cooldown:SetHideCountdownNumbers(not style.timers)
+                end
+            end
+        end
+        FlatFill(frame.Bar, style)
     end
     if depth > 0 and frame.GetChildren then
         for _, child in ipairs({frame:GetChildren()}) do SkinTree(child, depth - 1, owner, style) end
@@ -103,7 +174,27 @@ local function RestoreGroup(frame, record)
     end
 end
 local function RestoreCosmetics()
-    for _, record in pairs(decorations) do for _, edge in ipairs(record.edges) do edge:Hide() end end
+    for _, record in pairs(decorations) do
+        for _, edge in ipairs(record.edges) do edge:Hide() end
+        record.ring:Hide() record.tile:Hide()
+    end
+    for texture, record in pairs(shaped) do
+        if Usable(texture) then
+            texture:RemoveMaskTexture(record.mask)
+            for _, mask in ipairs(record.native) do texture:AddMaskTexture(mask) end
+            if record.coords then texture:SetTexCoord(unpack(record.coords)) end
+        end
+    end
+    for texture, record in pairs(fills) do
+        if Usable(texture) then
+            if record.atlas and texture.SetAtlas then texture:SetAtlas(record.atlas) else texture:SetTexture(record.texture) end
+            texture:SetTexCoord(unpack(record.coords)) texture:SetVertexColor(unpack(record.color))
+        end
+    end
+    for cooldown, hidden in pairs(countdowns) do
+        if Usable(cooldown) then cooldown:SetHideCountdownNumbers(hidden) end
+    end
+    shaped, fills, countdowns = {}, {}, {}
     for font, record in pairs(fonts) do
         if Usable(font) then font:SetFont(unpack(record.font)) font:SetTextColor(unpack(record.color)) end
     end
@@ -151,7 +242,8 @@ function ns.ApplyTrackers()
                     ns.SetScale(frame, record.scale * style.scale)
                     record.scaled = style.scale ~= 1
                 end
-                ns.Panel(record.panel, ns.db.opacity)
+                local opacity = style.opacity >= 0 and style.opacity or ns.db.opacity
+                ns.Panel(record.panel, opacity)
                 record.panel:SetShown(ns.db.trackers.container and style.background)
                 SkinTree(frame, 4, frame, style)
             elseif record then RestoreGroup(frame, record) end

@@ -994,6 +994,10 @@ if TEST_MODE == "trackers_native" then
     function methods:SetAtlas(atlas) self.atlas = atlas end
     function methods:GetAtlas() return self.atlas end
     function methods:GetTextColor() return unpack(self.textColor or {1,1,1,1}) end
+    function methods:GetVertexColor() return unpack(self.vertexColor or {1,1,1,1}) end
+    function methods:GetHideCountdownNumbers() return self.hideNumbers or false end
+    function methods:GetNumMaskTextures() local n=0 for _ in pairs(self.masks or {}) do n=n+1 end return n end
+    function methods:GetMaskTexture(index) local n=0 for mask in pairs(self.masks or {}) do n=n+1 if n==index then return mask end end end
     local enabled = true
     C_CVar = {GetCVarBool = function() return enabled end, SetCVar = function(_, value) enabled = value == "1" end}
     C_CooldownViewer = {IsCooldownViewerAvailable = function() return true end}
@@ -1002,6 +1006,7 @@ if TEST_MODE == "trackers_native" then
     trackerFixture:SetPoint("CENTER", UIParent, "CENTER", 180, 100)
     local item = New("Frame", nil, trackerFixture)
     item.Icon = item:CreateTexture(nil, "ARTWORK")
+    item.nativeMask = item:CreateMaskTexture(nil, "ARTWORK") item.Icon:AddMaskTexture(item.nativeMask)
     item.Cooldown = New("Cooldown", nil, item)
     item.Cooldown.timer = Secret()
     item.overlay = item:CreateTexture(nil, "OVERLAY")
@@ -1009,6 +1014,14 @@ if TEST_MODE == "trackers_native" then
     item.text = item:CreateFontString(nil, "OVERLAY")
     item.text:SetFont("NativeFont", 17, "")
     trackerFixture.item = item
+    BuffBarCooldownViewer = New("Frame", "BuffBarCooldownViewer", UIParent)
+    local barItem = New("Frame", nil, BuffBarCooldownViewer)
+    barItem.Icon = New("Frame", nil, barItem)
+    barItem.Icon.Icon = barItem.Icon:CreateTexture(nil, "ARTWORK")
+    barItem.Bar = New("StatusBar", nil, barItem)
+    barItem.Bar:GetStatusBarTexture():SetTexture("NativeBuffFill")
+    barItem.Bar:GetStatusBarTexture():SetVertexColor(0.7, 0.3, 0.2, 1)
+    BuffBarCooldownViewer.item = barItem
 end
 local ns = {}
 local meterFixture
@@ -1164,6 +1177,24 @@ if TEST_MODE == "trackers_native" then
     assert(ns.customize:IsShown() and ns.customize.page == "trackers")
     ns.customize:Hide()
     local frame, item = trackerFixture, trackerFixture.item
+    assert(not item.Icon.masks[item.nativeMask], "Native mask was not replaced for square skin")
+    ns.db.trackers.styles.essential.skin = "round"
+    ns.db.trackers.styles.essential.timers = false
+    ns.ApplyTrackers()
+    local circle
+    for mask in pairs(item.Icon.masks) do circle = mask end
+    assert(circle and circle.texture:find("CircleMask.tga", 1, true))
+    assert(item.Cooldown:GetHideCountdownNumbers())
+    local fill = BuffBarCooldownViewer.item.Bar:GetStatusBarTexture()
+    assert(fill:GetTexture() == ns.WHITE)
+    ns.db.trackers.groups.essential = false ns.db.trackers.groups.bars = false
+    ns.ApplyTrackers()
+    assert(item.Icon.masks[item.nativeMask] and item.Icon:GetNumMaskTextures() == 1)
+    assert(not item.Cooldown:GetHideCountdownNumbers())
+    assert(fill:GetTexture() == "NativeBuffFill")
+    ns.db.trackers.styles.essential.skin = "framed"
+    ns.db.trackers.styles.essential.timers = true
+    ns.db.trackers.groups.essential = true ns.db.trackers.groups.bars = true ns.ApplyTrackers()
     assert(ns.TrackerMoverVisible("trackeressential"))
     assert(not ns.TrackerMoverVisible("trackerutility"))
     assert(item.overlay:GetAlpha() == 0)

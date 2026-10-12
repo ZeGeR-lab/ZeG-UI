@@ -1,3 +1,12 @@
+## 0.4.9 — Native tracker group skins
+
+- Per-group framed, minimal, round and tile skins in guided setup.
+- Reversible square/circle icon masks, themed borders and tile backgrounds.
+- Flat buff-bar fills: native color in minimal skin, HUD accent in other skins.
+- Per-group panel opacity and icon timer visibility where native cooldown widgets support it.
+- Preserves original masks, fill textures/colors and countdown visibility when disabling skins.
+- Native orientation/spacing and spell selection remain Blizzard settings; icon groups are not converted into custom bar trackers.
+
 ## 0.4.8 — Guided Blizzard tracker setup
 
 - /zeg setup or Guided tracker setup on the Trackers page opens a four-step assistant.

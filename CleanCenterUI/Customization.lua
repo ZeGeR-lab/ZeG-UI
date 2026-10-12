@@ -19,7 +19,7 @@ ns.defaults.meters = {enabled = true, colorMode = "native", color = {0.35, 0.8, 
 ns.defaults.trackers = {enabled = true, autoEnable = false, fontSize = 13, container = true,
     groups = {essential = true, utility = true, buffs = true, bars = true}, styles = {}}
 for _, key in ipairs({"essential", "utility", "buffs", "bars"}) do
-    ns.defaults.trackers.styles[key] = {scale = 1, fontSize = 0, background = true}
+    ns.defaults.trackers.styles[key] = {scale = 1, fontSize = 0, background = true, skin = "framed", opacity = -1, timers = true}
 end
 ns.fontFaces = {standard = ns.FONT, friz = "Fonts\\FRIZQT__.TTF", arial = "Fonts\\ARIALN.TTF",
     skurri = "Fonts\\skurri.ttf", morpheus = "Fonts\\MORPHEUS.TTF"}
@@ -40,6 +40,9 @@ function ns.NormalizeCustomization()
     db.trackers.fontSize = Number(db.trackers.fontSize, 13, 8, 32, true)
     for key in pairs(ns.defaults.trackers.styles) do
         local style = db.trackers.styles[key]
+        if style.skin ~= "minimal" and style.skin ~= "round" and style.skin ~= "tiles" then style.skin = "framed" end
+        style.opacity = Number(style.opacity, -1, -1, 1)
+        if style.opacity < 0 then style.opacity = -1 end
         style.scale = Number(style.scale, 1, 0.65, 1.6)
         style.fontSize = Number(style.fontSize, 0, 0, 32, true)
         if style.fontSize > 0 then style.fontSize = math.max(8, style.fontSize) end
