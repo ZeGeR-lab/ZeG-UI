@@ -1,3 +1,12 @@
+## 0.4.10 — Countdown display visibility
+
+- Essential/Utility groups: Always show, Dim during countdown, Hide during countdown.
+- Uses the native cooldown widget's display boolean directly through SetAlphaFromBoolean; no timer arithmetic, spell queries, or secret-state branching.
+- Preserves native slots and tracking. Icon alpha returns to its original value after the native countdown stops or the feature is disabled.
+- Group backgrounds suppressed in hide/dim modes; unlocked/editing icons remain visible for positioning.
+- Countdown hiding is not a spell-usability test: native active-buff, global-cooldown or charge-recharge displays may also hide an icon. Buff groups retain native visibility.
+- Unsupported clients report the missing alpha capability. Live Forever validation still required.
+
 ## 0.4.9 — Native tracker group skins
 
 - Per-group framed, minimal, round and tile skins in guided setup.

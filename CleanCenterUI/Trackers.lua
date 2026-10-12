@@ -9,6 +9,39 @@ ns.trackerGroups = {
 }
 local groups, decorations, fonts, artwork = {}, {}, {}, {}
 local shaped, fills, countdowns, maskCache = {}, {}, {}, {}
+local opacityItems = {}
+function ns.TrackerCountdownVisibilitySupported()
+    return UIParent and UIParent.SetAlphaFromBoolean ~= nil
+end
+local function RestoreItemOpacity(frame)
+    local record = opacityItems[frame]
+    if record then
+        if frame and (not frame.IsForbidden or not frame:IsForbidden()) then frame:SetAlpha(record.alpha) end
+        opacityItems[frame] = nil
+    end
+end
+function ns.UpdateTrackerVisibility()
+    for frame, record in pairs(opacityItems) do
+        if ns.db and ns.db.enabled and ns.db.trackers.enabled and ns.db.trackers.groups[record.key]
+            and (not frame.IsForbidden or not frame:IsForbidden()) then
+            local mode = ns.db.trackers.styles[record.key].visibility
+            if mode ~= "always" and not ns.unlocked and not ns.blizzardEditing then
+                -- Forward an opaque engine display boolean directly to the C++
+                -- alpha setter. Never compare timers, spell states or secrets.
+                frame:SetAlphaFromBoolean(record.cooldown:IsShown(), mode == "hideCountdown" and 0 or 0.2, record.alpha)
+            else frame:SetAlpha(record.alpha) end
+        else RestoreItemOpacity(frame) end
+    end
+end
+local function ConfigureItemOpacity(frame, style, key)
+    if style.visibility == "always" or key == "buffs" or key == "bars" then RestoreItemOpacity(frame) return end
+    if not frame.SetAlphaFromBoolean or not frame.Cooldown or not frame.Cooldown.IsShown then return end
+    local record = opacityItems[frame]
+    if not record then
+        record = {alpha = frame:GetAlpha(), cooldown = frame.Cooldown, key = key}
+        opacityItems[frame] = record
+    end
+end
 local media = "Interface\\AddOns\\CleanCenterUI\\Media\\"
 local function ShapeTexture(texture, anchor, round)
     if not texture or not texture.AddMaskTexture or not texture.GetParent then return end
@@ -108,7 +141,7 @@ local function QuietOverlay(region)
         region:SetAlpha(0)
     end
 end
-local function SkinTree(frame, depth, owner, style)
+local function SkinTree(frame, depth, owner, style, key)
     if not Usable(frame) then return end
     if frame.GetRegions then
         for _, region in ipairs({frame:GetRegions()}) do
@@ -154,9 +187,10 @@ local function SkinTree(frame, depth, owner, style)
             end
         end
         FlatFill(frame.Bar, style)
+        ConfigureItemOpacity(frame, style, key)
     end
     if depth > 0 and frame.GetChildren then
-        for _, child in ipairs({frame:GetChildren()}) do SkinTree(child, depth - 1, owner, style) end
+        for _, child in ipairs({frame:GetChildren()}) do SkinTree(child, depth - 1, owner, style, key) end
     end
 end
 local function NativePoints(frame)
@@ -204,6 +238,7 @@ end
 function ns.RestoreTrackers()
     if InCombatLockdown() then return end
     RestoreCosmetics()
+    for frame in pairs(opacityItems) do RestoreItemOpacity(frame) end
     for frame, record in pairs(groups) do if Usable(frame) then RestoreGroup(frame, record) end end
 end
 function ns.TrackerMoverVisible(key)
@@ -244,11 +279,12 @@ function ns.ApplyTrackers()
                 end
                 local opacity = style.opacity >= 0 and style.opacity or ns.db.opacity
                 ns.Panel(record.panel, opacity)
-                record.panel:SetShown(ns.db.trackers.container and style.background)
-                SkinTree(frame, 4, frame, style)
+                record.panel:SetShown(ns.db.trackers.container and style.background and style.visibility == "always")
+                SkinTree(frame, 4, frame, style, group.key)
             elseif record then RestoreGroup(frame, record) end
         end
     end
+    ns.UpdateTrackerVisibility()
 end
 -- Discover newly allocated cosmetic widgets outside combat without hooking
 -- Blizzard's secure tracking callbacks. Native timers keep running independently.
@@ -260,4 +296,15 @@ poll:SetScript("OnUpdate", function(_, dt)
     if not ns.db or ns.unsupported or not ns.db.enabled or not ns.db.trackers.enabled
         or InCombatLockdown() or ns.blizzardEditing or ns.unlocked then return end
     ns.ApplyTrackers()
+end)
+
+-- Visibility-only updates may run in combat. No protected layout changes,
+-- native callbacks, spell queries, or visibility-state branching are involved.
+local visibilityPoll, visibilityElapsed = CreateFrame("Frame"), 0
+ns.trackerVisibilityPoll = visibilityPoll
+visibilityPoll:SetScript("OnUpdate", function(_, dt)
+    visibilityElapsed = visibilityElapsed + dt
+    if visibilityElapsed < 0.1 then return end
+    visibilityElapsed = 0
+    ns.UpdateTrackerVisibility()
 end)

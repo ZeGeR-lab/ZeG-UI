@@ -204,3 +204,7 @@ Draft changes stay local to the wizard until Save. Repeat for other groups. This
 ### Group display skins (0.4.9)
 Run `/zeg setup`, choose a group and proceed to its preview. Cycle **Skin** through framed, minimal, round and tiles. Adjust scale, timer/text size, group background and its opacity. Icon groups also offer a countdown visibility toggle when supported by the native widget. Save to apply; repeat for other groups.
 Buff bars use flat native-color fills in minimal mode or HUD accent fills in other modes. Round mode rounds the bar's spell icon. Disable a group skin to restore original masks, fills and timer visibility. These options style existing native viewers; orientation/spacing remain in Blizzard Edit Mode, and spells stay in the native group selected in Blizzard's editor.
+
+
+### Hide or dim cooldown displays (0.4.10)
+In `/zeg setup`, select Essential or Utility, go to the preview and cycle **Always show** to **Dim during countdown** or **Hide during countdown**, then Save. The mode tracks the native cooldown widget's display rather than calculating spell readiness. Native active-buff, GCD or charge-recharge timers can also hide an icon. Positions stay fixed, and the group background is suppressed so it does not leave an empty box. Unlocking restores icons for placement. Native buff-icon/bar groups keep their own visibility behavior.

@@ -1,6 +1,6 @@
 # ZeG UI
 
-Full WoW Forever UI. Current test build: **0.4.9**.
+Full WoW Forever UI. Current test build: **0.4.10**.
 
 ## Installation
 
@@ -21,3 +21,5 @@ Source, tests, detailed documentation and license are in [CleanCenterUI](CleanCe
 ## Developer checks
 
 Run `python3 CleanCenterUI/tests/run_checks.py` with a Lua 5.3/5.4 shared library installed.
+
+Essential/Utility icon groups also support hiding or dimming during the native countdown display. Native buff/charge/GCD countdowns can affect this mode; it is not a spell-usability test. Configure in `/zeg setup`.

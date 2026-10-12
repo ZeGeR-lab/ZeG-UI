@@ -994,6 +994,12 @@ if TEST_MODE == "trackers_native" then
     function methods:SetAtlas(atlas) self.atlas = atlas end
     function methods:GetAtlas() return self.atlas end
     function methods:GetTextColor() return unpack(self.textColor or {1,1,1,1}) end
+    function methods:SetAlphaFromBoolean(value, alphaIfTrue, alphaIfFalse)
+        -- Simulated engine sink can interpret an opaque boolean; addon code cannot.
+        local active = value
+        if issecretvalue(value) then active = rawget(value, "engineValue") end
+        if active then self:SetAlpha(alphaIfTrue) else self:SetAlpha(alphaIfFalse) end
+    end
     function methods:GetVertexColor() return unpack(self.vertexColor or {1,1,1,1}) end
     function methods:GetHideCountdownNumbers() return self.hideNumbers or false end
     function methods:GetNumMaskTextures() local n=0 for _ in pairs(self.masks or {}) do n=n+1 end return n end
@@ -1177,6 +1183,22 @@ if TEST_MODE == "trackers_native" then
     assert(ns.customize:IsShown() and ns.customize.page == "trackers")
     ns.customize:Hide()
     local frame, item = trackerFixture, trackerFixture.item
+    local nativeAlpha = item:GetAlpha()
+    ns.db.trackers.styles.essential.visibility = "hideCountdown" ns.ApplyTrackers()
+    local originalShown = item.Cooldown.IsShown
+    local hiddenSecret = Secret() hiddenSecret.engineValue = true
+    item.Cooldown.IsShown = function() return hiddenSecret end
+    combat = true ns.UpdateTrackerVisibility()
+    assert(item:GetAlpha() == 0, "Opaque native countdown did not hide the icon")
+    hiddenSecret.engineValue = false ns.UpdateTrackerVisibility()
+    assert(item:GetAlpha() == nativeAlpha, "Icon did not return when native countdown stopped")
+    hiddenSecret.engineValue = true ns.db.trackers.styles.essential.visibility = "dimCountdown"
+    ns.UpdateTrackerVisibility() assert(item:GetAlpha() == 0.2)
+    ns.unlocked = true ns.UpdateTrackerVisibility() assert(item:GetAlpha() == nativeAlpha)
+    ns.unlocked = false combat = false
+    ns.db.trackers.styles.essential.visibility = "always" ns.ApplyTrackers()
+    assert(item:GetAlpha() == nativeAlpha)
+    item.Cooldown.IsShown = originalShown
     assert(not item.Icon.masks[item.nativeMask], "Native mask was not replaced for square skin")
     ns.db.trackers.styles.essential.skin = "round"
     ns.db.trackers.styles.essential.timers = false

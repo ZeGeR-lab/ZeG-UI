@@ -57,6 +57,9 @@ function ns.RefreshTrackerAssistant()
     w.opacity.label:SetText("Background opacity: " .. (w.draft.opacity < 0 and "HUD" or math.floor(w.draft.opacity*100+0.5) .. "%"))
     w.timers.label:SetText("Icon timers: " .. (w.draft.timers and "On" or "Off"))
     w.timers:SetShown(w.group ~= "bars")
+    local modes = {always = "Always show", hideCountdown = "Hide during countdown", dimCountdown = "Dim during countdown"}
+    w.visibility.label:SetText(ns.TrackerCountdownVisibilitySupported() and (modes[w.draft.visibility] or modes.always) or "Countdown hiding unavailable")
+    w.visibility:SetShown(w.group == "essential" or w.group == "utility")
     w.preview:SetScale(w.draft.scale)
     ns.Panel(w.preview, w.draft.opacity >= 0 and w.draft.opacity or ns.db.opacity)
     local color = ns.db.colors.panel
@@ -69,13 +72,16 @@ function ns.RefreshTrackerAssistant()
         item.previewMask:SetTexture(w.draft.skin == "round" and "Interface\\AddOns\\CleanCenterUI\\Media\\CircleMask.tga" or ns.WHITE)
         item.ring:SetShown(w.draft.skin == "round")
         ns.SetBorderColor(item, unpack((w.draft.skin == "minimal" or w.draft.skin == "round") and {0,0,0,0} or ns.db.colors.border))
+        local alpha = (w.group == "essential" or w.group == "utility") and w.draft.visibility ~= "always" and i == 1
+            and (w.draft.visibility == "hideCountdown" and 0 or 0.2) or 1
+        item:SetAlpha(alpha)
         item.time:SetShown(w.group == "bars" or w.draft.timers)
         item.bar:SetShown(w.group == "bars")
         item.name:SetShown(w.group == "bars")
         item.time:SetFont(ns.FONT, w.draft.fontSize, "OUTLINE")
     end
     w.spells:SetText("For " .. group.label .. ": select the spells or buffs you want in Blizzard's editor. ZeG UI will style that existing group. Selection is not completed by saving this wizard.")
-    w.summary:SetText(group.label .. ": " .. math.floor(w.draft.scale * 100 + 0.5) .. "% size, " .. w.draft.fontSize .. " pt text, " .. w.draft.skin .. " skin, " .. (w.draft.background and "background on." or "background off.") .. "\n\nSave styling, then unlock and drag the native group. Repeat this assistant for your other groups.")
+    w.summary:SetText(group.label .. ": " .. math.floor(w.draft.scale * 100 + 0.5) .. "% size, " .. w.draft.fontSize .. " pt text, " .. w.draft.skin .. " skin, " .. (modes[w.draft.visibility] or modes.always) .. ", " .. (w.draft.background and "background on." or "background off.") .. "\n\nSave styling, then unlock and drag the native group. Repeat this assistant for your other groups.")
     w.status:SetText(w.saved and "Style saved. Configure spells in Blizzard, then place the group." or "Preview uses sample icons and durations. Nothing changes until you save.")
 end
 function ns.OpenTrackerAssistant()
@@ -126,7 +132,13 @@ function ns.OpenTrackerAssistant()
         w.opacity = Button(style, "", 284, -78, 266, function()
             w.saved = false w.draft.opacity = w.draft.opacity >= 1 and -1 or math.min(1, math.max(0, w.draft.opacity) + 0.2) ns.RefreshTrackerAssistant()
         end)
-        w.timers = Button(style, "", 0, -162, 550, function() w.saved = false w.draft.timers = not w.draft.timers ns.RefreshTrackerAssistant() end)
+        w.timers = Button(style, "", 0, -162, 270, function() w.saved = false w.draft.timers = not w.draft.timers ns.RefreshTrackerAssistant() end)
+        w.visibility = Button(style, "", 284, -162, 266, function()
+            if not ns.TrackerCountdownVisibilitySupported() then ns.Print("This client does not expose the required opacity setter. Icons remain visible.") return end
+            local modes = {"always", "dimCountdown", "hideCountdown"} local index = 0
+            for i, mode in ipairs(modes) do if mode == w.draft.visibility then index = i end end
+            w.saved = false w.draft.visibility = modes[index % #modes + 1] ns.RefreshTrackerAssistant()
+        end)
         w.background = Button(style, "", 0, -120, 550, function() w.saved = false w.draft.background = not w.draft.background ns.RefreshTrackerAssistant() end)
         Label(style, "Sample preview — not live combat tracking", 0, -204, 550, 12)
         w.preview = CreateFrame("Frame", nil, style)
@@ -148,7 +160,7 @@ function ns.OpenTrackerAssistant()
             item.name = Label(item, i == 1 and "Sample buff" or "Sample effect", 48, -4, 200, 12)
             w.previewItems[i] = item
         end
-        Label(style, "Native icon size, orientation and visibility can also be adjusted in Blizzard Edit Mode. This step scales the whole group.", 0, -414, 550, 12)
+        Label(style, "Hide/dim follows the native countdown display, including buff or charge timers where used. Slots stay fixed; group backgrounds are suppressed in these modes. Layout remains in Blizzard Edit Mode.", 0, -414, 550, 12)
         local native = w.pages[3]
         Label(native, "3. Choose monitored spells and notifications", 0, 0, 550, 16)
         w.spells = Label(native, "", 0, -40, 550)

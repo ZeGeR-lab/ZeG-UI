@@ -19,7 +19,7 @@ ns.defaults.meters = {enabled = true, colorMode = "native", color = {0.35, 0.8, 
 ns.defaults.trackers = {enabled = true, autoEnable = false, fontSize = 13, container = true,
     groups = {essential = true, utility = true, buffs = true, bars = true}, styles = {}}
 for _, key in ipairs({"essential", "utility", "buffs", "bars"}) do
-    ns.defaults.trackers.styles[key] = {scale = 1, fontSize = 0, background = true, skin = "framed", opacity = -1, timers = true}
+    ns.defaults.trackers.styles[key] = {scale = 1, fontSize = 0, background = true, skin = "framed", opacity = -1, timers = true, visibility = "always"}
 end
 ns.fontFaces = {standard = ns.FONT, friz = "Fonts\\FRIZQT__.TTF", arial = "Fonts\\ARIALN.TTF",
     skurri = "Fonts\\skurri.ttf", morpheus = "Fonts\\MORPHEUS.TTF"}
@@ -40,6 +40,8 @@ function ns.NormalizeCustomization()
     db.trackers.fontSize = Number(db.trackers.fontSize, 13, 8, 32, true)
     for key in pairs(ns.defaults.trackers.styles) do
         local style = db.trackers.styles[key]
+        if style.visibility ~= "hideCountdown" and style.visibility ~= "dimCountdown" then style.visibility = "always" end
+        if key == "buffs" or key == "bars" then style.visibility = "always" end
         if style.skin ~= "minimal" and style.skin ~= "round" and style.skin ~= "tiles" then style.skin = "framed" end
         style.opacity = Number(style.opacity, -1, -1, 1)
         if style.opacity < 0 then style.opacity = -1 end
