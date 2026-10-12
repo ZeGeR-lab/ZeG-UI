@@ -1134,6 +1134,24 @@ local function Rect(frame)
     return rx + rw * r[1] + x * scale - width * p[1], ry + rh * r[2] + y * scale - height * p[2], width, height
 end
 if TEST_MODE == "trackers_native" then
+    local originalScale = ns.db.trackers.styles.essential.scale
+    ns.OpenTrackerAssistant()
+    local wizard = ns.trackerAssistant
+    assert(wizard:IsShown() and wizard.step == 1 and wizard.group == "buffs")
+    wizard.groupButtons.essential:GetScript("OnClick")()
+    assert(wizard.group == "essential")
+    wizard.next:GetScript("OnClick")()
+    assert(wizard.step == 2)
+    wizard.size:GetScript("OnClick")()
+    assert(ns.db.trackers.styles.essential.scale == originalScale, "Draft changed live preferences")
+    wizard.next:GetScript("OnClick")() wizard.next:GetScript("OnClick")()
+    assert(wizard.step == 4)
+    wizard.next:GetScript("OnClick")() Tick()
+    assert(wizard.saved and ns.db.trackers.styles.essential.scale == wizard.draft.scale)
+    assert(trackerFixture:GetScale() == wizard.draft.scale)
+    ns.db.trackers.styles.essential.scale = 1
+    ns.db.trackers.styles.essential.fontSize = 0
+    ns.QueueLayout() Tick() wizard:Hide()
     assert(SLASH_CLEANCENTERUI1 == "/zeg" and SLASH_CLEANCENTERUI2 == "/ccui")
     assert(ns.launcher and ns.launcher:GetParent() == UIParent)
     ns.launcher:Hide() ns.launcher:SetAlpha(0)

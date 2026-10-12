@@ -246,6 +246,7 @@ SLASH_CLEANCENTERUI2 = "/ccui"
 SLASH_CLEANCENTERUI3 = "/cleancenter"
 SlashCmdList.CLEANCENTERUI = function(message)
     local command, args = (message or ""):lower():match("^%s*(%S+)%s*(.-)%s*$")
+    if command == "setup" then ns.OpenTrackerAssistant() return end
     if command == "info" then ns.Info() return end
     if command == "taint" then ns.TaintInfo() return end
     if ns.unsupported then ns.Info() return end

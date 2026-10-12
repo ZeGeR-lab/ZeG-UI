@@ -1,7 +1,7 @@
 local addonName, ns = ...
 _G.CleanCenterUI = ns
 _G.ZeGUI = ns
-ns.version = "0.4.7"
+ns.version = "0.4.8"
 ns.WHITE = "Interface\\Buttons\\WHITE8X8"
 ns.FONT = STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
 ns.defaults = {

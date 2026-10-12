@@ -17,7 +17,10 @@ ns.defaults.fade = {enabled = false, delay = 3, alpha = 0.25, speed = 0.2, chat 
 ns.defaults.meters = {enabled = true, colorMode = "native", color = {0.35, 0.8, 0.95, 1},
     opacity = -1, rowBorders = true, accentLine = true}
 ns.defaults.trackers = {enabled = true, autoEnable = false, fontSize = 13, container = true,
-    groups = {essential = true, utility = true, buffs = true, bars = true}}
+    groups = {essential = true, utility = true, buffs = true, bars = true}, styles = {}}
+for _, key in ipairs({"essential", "utility", "buffs", "bars"}) do
+    ns.defaults.trackers.styles[key] = {scale = 1, fontSize = 0, background = true}
+end
 ns.fontFaces = {standard = ns.FONT, friz = "Fonts\\FRIZQT__.TTF", arial = "Fonts\\ARIALN.TTF",
     skurri = "Fonts\\skurri.ttf", morpheus = "Fonts\\MORPHEUS.TTF"}
 ns.fontRegistry = {}
@@ -35,6 +38,12 @@ end
 function ns.NormalizeCustomization()
     local db = ns.db
     db.trackers.fontSize = Number(db.trackers.fontSize, 13, 8, 32, true)
+    for key in pairs(ns.defaults.trackers.styles) do
+        local style = db.trackers.styles[key]
+        style.scale = Number(style.scale, 1, 0.65, 1.6)
+        style.fontSize = Number(style.fontSize, 0, 0, 32, true)
+        if style.fontSize > 0 then style.fontSize = math.max(8, style.fontSize) end
+    end
     db.rows = Number(db.rows, 2, 1, 8, true)
     db.scale = Number(db.scale, 1, 0.65, 1.4)
     db.buttonSize = Number(db.buttonSize, 48, 28, 64, true)

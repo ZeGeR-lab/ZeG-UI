@@ -1,3 +1,11 @@
+## 0.4.8 — Guided Blizzard tracker setup
+
+- /zeg setup or Guided tracker setup on the Trackers page opens a four-step assistant.
+- Detects player class, explains native group/display choices, previews sample icons/bars, and saves per-group scale, text size and background.
+- Draft choices apply only on Save; group styles are included in profiles.
+- Opens Blizzard spell configuration and reports manager availability. Spell selection, active visibility, sounds and notifications remain explicit native-editor steps.
+- Offers placement through existing movers and advanced settings. Custom fade/popup rules are not implemented.
+
 ## 0.4.7 — Minimap launcher and triangle casting visuals
 
 - Put the launcher on an independent UIParent overlay to avoid minimap-child rendering/clipping.

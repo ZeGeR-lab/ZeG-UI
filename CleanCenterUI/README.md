@@ -190,3 +190,12 @@ Live check: enable tracking; select a cooldown/buff; move the group; cast and ve
 ### ZeG UI branding and launcher (0.4.6)
 Use `/zeg` to open settings and `/zeg trackers` for cooldown groups. `/ccui` remains a compatibility alias. The ZeG minimap button opens Settings on left-click and Trackers on right-click.
 The existing CleanCenterUI installation folder, TOC filename and saved-variable names are retained to preserve existing character layouts during this branding update. Replace the old folder with the included folder; do not install a second copy alongside it.
+
+
+### Guided setup (0.4.8)
+Run `/zeg setup`, or select **Guided tracker setup** in `/zeg trackers`.
+1. Choose one of Blizzard's four native groups.
+2. Preview and choose group scale, text size and background.
+3. Enable tracking and choose spells/visibility/available alerts in Blizzard's editor.
+4. Save style and unlock placement; `/zeg lock` finishes movement.
+Draft changes stay local to the wizard until Save. Repeat for other groups. This assistant does not automatically select spells or create a new tracking engine. Sounds, popup-style native alerts and active visibility are available only where Blizzard's editor exposes them; custom fades/popups are not included.

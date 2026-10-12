@@ -52,10 +52,10 @@ local function Borders(parent)
     end
     return edges
 end
-local function Font(font)
+local function Font(font, style)
     if not Usable(font) or not font.GetFont then return end
     if not fonts[font] then fonts[font] = {font = {font:GetFont()}, color = {font:GetTextColor()}} end
-    font:SetFont(ns.fontFaces[ns.db.fontFace] or ns.FONT, ns.db.trackers.fontSize, "OUTLINE")
+    font:SetFont(ns.fontFaces[ns.db.fontFace] or ns.FONT, style.fontSize > 0 and style.fontSize or ns.db.trackers.fontSize, "OUTLINE")
     font:SetTextColor(unpack(ns.db.colors.text))
 end
 local function QuietOverlay(region)
@@ -68,11 +68,11 @@ local function QuietOverlay(region)
         region:SetAlpha(0)
     end
 end
-local function SkinTree(frame, depth, owner)
+local function SkinTree(frame, depth, owner, style)
     if not Usable(frame) then return end
     if frame.GetRegions then
         for _, region in ipairs({frame:GetRegions()}) do
-            if region.GetObjectType and region:GetObjectType() == "FontString" then Font(region)
+            if region.GetObjectType and region:GetObjectType() == "FontString" then Font(region, style)
             else QuietOverlay(region) end
         end
     end
@@ -85,7 +85,7 @@ local function SkinTree(frame, depth, owner)
         end
     end
     if depth > 0 and frame.GetChildren then
-        for _, child in ipairs({frame:GetChildren()}) do SkinTree(child, depth - 1, owner) end
+        for _, child in ipairs({frame:GetChildren()}) do SkinTree(child, depth - 1, owner, style) end
     end
 end
 local function NativePoints(frame)
@@ -95,6 +95,7 @@ local function NativePoints(frame)
 end
 local function RestoreGroup(frame, record)
     record.panel:Hide()
+    if record.scaled then ns.SetScale(frame, record.scale) record.scaled = nil end
     if record.moved then
         ns.ClearPoints(frame)
         for _, point in ipairs(record.points) do ns.SetPoint(frame, unpack(point)) end
@@ -137,17 +138,22 @@ function ns.ApplyTrackers()
                     local level = frame:GetFrameLevel()
                     if ns.Finite(level) then panel:SetFrameLevel(math.max(0, level - 1)) end
                     ns.Panel(panel, ns.db.opacity)
-                    record = {panel = panel, points = NativePoints(frame)} groups[frame] = record
+                    record = {panel = panel, points = NativePoints(frame), scale = frame:GetScale()} groups[frame] = record
                     ns.AddMover(frame, key, "Tracker: " .. group.label)
                 end
+                local style = ns.db.trackers.styles[group.key]
                 local saved = ns.db.positions[key]
                 if saved then
                     ns.ClearPoints(frame) ns.SetPoint(frame, "CENTER", ns.root, "CENTER", saved.x, saved.y)
                     record.moved = true
                 elseif record.moved then RestoreGroup(frame, record) end
+                if ns.Finite(record.scale) then
+                    ns.SetScale(frame, record.scale * style.scale)
+                    record.scaled = style.scale ~= 1
+                end
                 ns.Panel(record.panel, ns.db.opacity)
-                record.panel:SetShown(ns.db.trackers.container)
-                SkinTree(frame, 4, frame)
+                record.panel:SetShown(ns.db.trackers.container and style.background)
+                SkinTree(frame, 4, frame, style)
             elseif record then RestoreGroup(frame, record) end
         end
     end

@@ -298,10 +298,11 @@ local function Trackers(page)
             move.label:SetText(group.label .. (ns.db.trackers.groups[key] and " | Move" or " | Native"))
         end)
     end
-    Button(page, "Reset group positions", 0, -390, 550, function()
+    Button(page, "Reset group positions", 0, -390, 266, function()
         for _, group in ipairs(ns.trackerGroups) do ns.db.positions["tracker" .. group.key] = nil end
         Changed()
     end)
+    Button(page, "Guided tracker setup", 284, -390, 266, function() ns.OpenTrackerAssistant() end)
     Help(page, "Blizzard owns spell selection, visibility, icon size and timers. Skin toggles restore native visuals; they do not stop tracking. Move only outside combat.", -428)
 end
 local builders = {profiles = Profiles, layout = Alignment, bars = Bars, fonts = Fonts, themes = Themes, auras = Auras,
