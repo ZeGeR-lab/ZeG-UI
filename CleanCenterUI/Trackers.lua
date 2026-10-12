@@ -356,7 +356,20 @@ poll:SetScript("OnUpdate", function(_, dt)
     elapsed = 0
     if not ns.db or ns.unsupported or not ns.db.enabled or not ns.db.trackers.enabled
         or InCombatLockdown() or ns.blizzardEditing or ns.unlocked then return end
-    ns.ApplyTrackers()
+    local function HasNewWidget(frame, depth)
+        if not Usable(frame) then return false end
+        if frame.Icon and (frame.Cooldown or frame.Bar) and not decorations[frame] then return true end
+        if depth > 0 and frame.GetChildren then
+            for _, child in ipairs({frame:GetChildren()}) do if HasNewWidget(child, depth-1) then return true end end
+        end
+        return false
+    end
+    for _, group in ipairs(ns.trackerGroups) do
+        local frame = _G[group.name]
+        if ns.db.trackers.groups[group.key] and Usable(frame) and (not groups[frame] or HasNewWidget(frame, 4)) then
+            ns.QueueLayout() return
+        end
+    end
 end)
 
 -- Visibility-only updates may run in combat. No protected layout changes,

@@ -137,7 +137,7 @@ local function PlaceBar(bar, row)
     ns.Hook(bar, "SetPoint", ns.QueueLayout)
     ns.Hook(bar, "UpdateGridLayout", ns.QueueLayout)
     ns.Hook(bar, "UpdateShownButtons", ns.QueueLayout)
-    ns.Hook(bar, "UpdateVisibility", ns.QueueLayout)
+    -- Visibility is mirrored by RefreshBarPanels; it does not need a full reflow.
     ns.RefreshBarPanels()
 end
 

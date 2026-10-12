@@ -208,3 +208,9 @@ Buff bars use flat native-color fills in minimal mode or HUD accent fills in oth
 
 ### Hide or dim cooldown displays (0.4.10)
 In `/zeg setup`, select Essential or Utility, go to the preview and cycle **Always show** to **Dim during countdown** or **Hide during countdown**, then Save. The mode tracks the native cooldown widget's display rather than calculating spell readiness. Native active-buff, GCD or charge-recharge timers can also hide an icon. Choose **Fixed slots** or **Compact outside combat**. Compaction closes gaps only outside combat when native state and geometry are readable; combat layout freezes. The group background is suppressed so it does not leave an empty box. Unlocking restores icons for placement. Native buff-icon/bar groups keep their own visibility behavior.
+
+
+### Direct settings and sliders (0.4.12)
+`/zeg` or minimap left-click opens the organized settings menu. Choose **Cooldown tracker > Edit groups**, select Essential, Utility, Buff icons or Buff bars, and change its appearance directly. Sliders control scale (25–250%) and background opacity; skin, text, visibility, slot behavior and timer controls are alongside them. Move/reset the selected group from the same panel. Changes save automatically and protected layout changes wait until combat ends.
+**Manager settings** contains enabling, automatic startup, global background and default text controls, plus Blizzard spell selection. **Optional guided setup** remains available but is not required. Overview provides HUD scale and opacity sliders and links to unit-frame, minimap and module settings.
+This version also caches tooltip styling and reduces recurring reflow/skin work to address hover FPS drops. In-game performance is not measured by the simulator.

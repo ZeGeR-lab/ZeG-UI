@@ -250,7 +250,8 @@ SlashCmdList.CLEANCENTERUI = function(message)
     if command == "info" then ns.Info() return end
     if command == "taint" then ns.TaintInfo() return end
     if ns.unsupported then ns.Info() return end
-    if not command then ns.OpenOptions()
+    if not command then ns.OpenCustomize("general")
+    elseif command == "general" then ns.OpenCustomize("general")
     elseif command == "customize" then ns.OpenCustomize(args)
     elseif command == "profiles" or command == "fonts" or command == "themes" or command == "swing"
         or command == "layout" or command == "auras" or command == "fade" or command == "meters" or command == "trackers" then ns.OpenCustomize(command)

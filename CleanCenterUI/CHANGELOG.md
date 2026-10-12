@@ -1,3 +1,12 @@
+## 0.4.12 — Direct tracker editor, sliders and hover performance
+
+- /zeg and minimap left-click now open a central settings menu with an Overview and organized sidebar.
+- Cooldown tracker has Edit groups and Manager settings panels. Directly edit every group's skin, scale, text, background/opacity, countdown visibility, slots and timers; move/reset individual groups without a wizard.
+- Group scale slider supports 25–250% in 1% steps; the optional setup wizard uses the same slider. Overview adds HUD scale/opacity sliders.
+- Tooltip styling is cached by line count and invalidated by settings changes, avoiding repeated font/panel work on native hover Show calls.
+- Bar visibility changes no longer schedule full reflows; tracker polling discovers new widgets instead of repeatedly rebuilding existing skins.
+- All 64 simulated checks passed, including slider draft isolation/direct edits and repeated tooltip Show calls. Actual FPS improvement requires live-client validation.
+
 ## 0.4.11 — Optional compact countdown layout
 
 - Fixed slots or Compact outside combat for Essential/Utility countdown hiding.

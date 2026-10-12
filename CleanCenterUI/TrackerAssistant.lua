@@ -49,7 +49,7 @@ function ns.RefreshTrackerAssistant()
     for key, button in pairs(w.groupButtons) do ns.ThemeButton(button, key == w.group) end
     w.description:SetText(descriptions[w.group])
     w.styleTitle:SetText(group.label .. (w.group == "bars" and " — timer bars" or " — icons"))
-    w.size.label:SetText("Group size: " .. math.floor(w.draft.scale * 100 + 0.5) .. "%")
+    w.size:RefreshValue()
     w.font.label:SetText("Timer / text size: " .. w.draft.fontSize)
     w.background.label:SetText("Group background: " .. (w.draft.background and "On" or "Off"))
     ns.ThemeButton(w.background, w.draft.background)
@@ -62,7 +62,7 @@ function ns.RefreshTrackerAssistant()
     w.visibility:SetShown(w.group == "essential" or w.group == "utility")
     w.layout.label:SetText(w.draft.layout == "compactOutOfCombat" and "Compact outside combat" or "Fixed slots")
     w.layout:SetShown(w.group == "essential" or w.group == "utility")
-    w.preview:SetScale(w.draft.scale)
+    w.preview:SetScale(math.min(w.draft.scale, 1.5))
     ns.Panel(w.preview, w.draft.opacity >= 0 and w.draft.opacity or ns.db.opacity)
     local color = ns.db.colors.panel
     local opacity = w.draft.opacity >= 0 and w.draft.opacity or ns.db.opacity
@@ -92,6 +92,7 @@ function ns.OpenTrackerAssistant()
     if not ns.trackerAssistant then
         local w = CreateFrame("Frame", "ZeGUITrackerAssistant", UIParent)
         ns.trackerAssistant = w
+        w.draft = ns.Copy(ns.db.trackers.styles.buffs)
         w:SetSize(620, 660) w:SetPoint("CENTER") w:SetFrameStrata("DIALOG") w:SetFrameLevel(150)
         w:SetClampedToScreen(true) ns.Panel(w, 0.98)
         w.heading = Label(w, "", 24, -20, 550, 20)
@@ -118,11 +119,9 @@ function ns.OpenTrackerAssistant()
         Label(first, "These are Blizzard's four native groups. Spell availability depends on your class, specialization and client.", 0, -274, 550, 12)
         local style = w.pages[2]
         w.styleTitle = Label(style, "", 0, 0, 550, 16)
-        w.size = Button(style, "", 0, -36, 270, function()
-            local sizes = {0.8, 1, 1.2, 1.4} local current = 0
-            for i, size in ipairs(sizes) do if math.abs(w.draft.scale - size) < 0.01 then current = i end end
-            w.saved = false w.draft.scale = sizes[current % #sizes + 1] ns.RefreshTrackerAssistant()
-        end)
+        w.size = ns.SettingSlider(style, 0, -30, 266, 0.25, 2.5, 0.01,
+            function() return w.draft.scale end, function(v) w.draft.scale = v end,
+            function() w.saved = false ns.RefreshTrackerAssistant() end, "Group scale")
         w.font = Button(style, "", 284, -36, 266, function()
             w.saved = false w.draft.fontSize = w.draft.fontSize >= 24 and 10 or w.draft.fontSize + 2 ns.RefreshTrackerAssistant()
         end)
@@ -146,7 +145,7 @@ function ns.OpenTrackerAssistant()
             w.saved = false w.draft.layout = w.draft.layout == "fixed" and "compactOutOfCombat" or "fixed"
             ns.RefreshTrackerAssistant()
         end)
-        Label(style, "Sample preview — not live combat tracking", 0, -204, 550, 12)
+        Label(style, "Sample preview (fitted to window) — not live tracking", 0, -204, 550, 12)
         w.preview = CreateFrame("Frame", nil, style)
         w.preview:SetSize(310, 116) w.preview:SetPoint("TOPLEFT", 4, -232) ns.Panel(w.preview, 0.9)
         w.previewItems = {}

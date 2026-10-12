@@ -46,7 +46,7 @@ function ns.NormalizeCustomization()
         if style.skin ~= "minimal" and style.skin ~= "round" and style.skin ~= "tiles" then style.skin = "framed" end
         style.opacity = Number(style.opacity, -1, -1, 1)
         if style.opacity < 0 then style.opacity = -1 end
-        style.scale = Number(style.scale, 1, 0.65, 1.6)
+        style.scale = Number(style.scale, 1, 0.25, 2.5)
         style.fontSize = Number(style.fontSize, 0, 0, 32, true)
         if style.fontSize > 0 then style.fontSize = math.max(8, style.fontSize) end
     end

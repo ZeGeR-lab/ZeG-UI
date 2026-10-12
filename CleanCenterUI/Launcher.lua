@@ -20,7 +20,7 @@ function ns.CreateLauncher()
     local label = ns.Font(button, 12, "CENTER")
     label:SetPoint("BOTTOM", 0, 1) label:SetText("Z")
     button:SetScript("OnClick", function(_, mouse)
-        if mouse == "RightButton" then ns.OpenCustomize("trackers") else ns.OpenOptions() end
+        if mouse == "RightButton" then ns.OpenCustomize("trackers") else ns.OpenCustomize("general") end
     end)
     button:SetScript("OnEnter", function(self)
         ns.SetBorderColor(self, unpack(ns.db.colors.accent))

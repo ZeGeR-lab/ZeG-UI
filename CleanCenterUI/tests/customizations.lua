@@ -230,6 +230,12 @@ elseif mode == "custom_aura_sizes" or mode == "custom_aura_sizes_scaled" then
         assert(button:GetScript("OnClick") == handlers.click and button:GetScript("OnEnter") == handlers.enter)
     end
 elseif mode == "custom_tooltips" then
+    local passes = ns.tooltipStylePasses
+    for i = 1, 200 do GameTooltip:Show() end
+    assert(ns.tooltipStylePasses == passes, "Hover Show events repeatedly rebuilt tooltip skin")
+    h.poll() local settled = ns.tooltipStylePasses
+    for i = 1, 200 do GameTooltip:Show() end
+    h.poll() assert(ns.tooltipStylePasses == settled, "Stable tooltip was restyled by polling")
     local owner = MainActionBar.actionButtons[1]
     GameTooltip.secretLayout = true GameTooltip:SetOwner(owner, "ANCHOR_NONE") GameTooltip:Show()
     ns.db.tooltip.anchor = "cursor" ns.QueueLayout() h.tick() h.poll()

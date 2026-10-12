@@ -1,6 +1,6 @@
 # ZeG UI
 
-Full WoW Forever UI. Current test build: **0.4.11**.
+Full WoW Forever UI. Current test build: **0.4.12**.
 
 ## Installation
 
@@ -25,3 +25,9 @@ Run `python3 CleanCenterUI/tests/run_checks.py` with a Lua 5.3/5.4 shared librar
 Essential/Utility icon groups also support hiding or dimming during the native countdown display. Native buff/charge/GCD countdowns can affect this mode; it is not a spell-usability test. Configure in `/zeg setup`.
 
 Countdown hiding offers Fixed slots or Compact outside combat. Compaction closes gaps only when native state and geometry are readable outside combat; combat positions stay fixed.
+
+## Direct settings
+
+`/zeg` opens the central menu. Choose **Cooldown tracker > Edit groups** to change group skins, 25–250% scale sliders, text, opacity, timers, hiding and slot options without a setup wizard. **Manager settings** contains enabling and Blizzard spell-selection access.
+
+0.4.12 also caches tooltip styling and reduces repeated skin/reflow work to address hover FPS drops. All 64 simulated scenarios pass; live-client FPS validation remains required.

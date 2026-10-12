@@ -1,3 +1,3 @@
-ZeG UI 0.4.11
-All Lua sources compile; 64 simulated scenarios passed.
-Tests cover opaque countdown opacity in combat, ready-icon compaction outside combat, layout freeze during combat, native position restoration and existing skin/wizard/profile/minimap/triangle behavior. Live Forever verification still required.
+ZeG UI 0.4.12
+All Lua sources compile; all 64 simulated scenarios passed.
+Checks include 1% slider draft isolation, direct tracker scaling without the wizard, central-menu launcher navigation, repeated tooltip Show calls without repeated styling, and prior tracker/compaction/combat/skin/profile/minimap/triangle behavior. Actual hover FPS and visual layout require live WoW testing.

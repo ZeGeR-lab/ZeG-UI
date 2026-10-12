@@ -156,8 +156,15 @@ function methods:ClearFocus()
     end
 end
 function methods:SetFormattedText(fmt, ...) self.format, self.formatArgs = fmt, {...} end
-function methods:SetValue(value) assert(self.kind == "StatusBar") self.value = value end
-function methods:SetMinMaxValues(lo, hi) assert(self.kind == "StatusBar") self.range = {lo, hi} end
+function methods:SetValue(value)
+    assert(self.kind == "StatusBar" or self.kind == "Slider") self.value = value
+    if self.kind == "Slider" and self.scripts.OnValueChanged then self.scripts.OnValueChanged(self, value) end
+end
+function methods:SetOrientation(value) self.orientation = value end
+function methods:SetValueStep(value) self.valueStep = value end
+function methods:SetThumbTexture(value) self.thumbTexture = value end
+function methods:SetObeyStepOnDrag(value) self.obeyStep = value end
+function methods:SetMinMaxValues(lo, hi) assert(self.kind == "StatusBar" or self.kind == "Slider") self.range = {lo, hi} end
 function methods:SetStatusBarTexture(value) assert(self.kind == "StatusBar") self.texture = value end
 function methods:SetStatusBarColor(...) self.barColor = {...} end
 function methods:GetNormalTexture() return self.normalTexture end
@@ -1170,7 +1177,7 @@ if TEST_MODE == "trackers_native" then
     assert(wizard.group == "essential")
     wizard.next:GetScript("OnClick")()
     assert(wizard.step == 2)
-    wizard.size:GetScript("OnClick")()
+    wizard.size:SetValue(1.37)
     assert(ns.db.trackers.styles.essential.scale == originalScale, "Draft changed live preferences")
     wizard.next:GetScript("OnClick")() wizard.next:GetScript("OnClick")()
     assert(wizard.step == 4)
@@ -1187,9 +1194,14 @@ if TEST_MODE == "trackers_native" then
     assert(ns.launcher:IsShown() and ns.launcher:GetAlpha() == 1)
     assert(({ns.launcher:GetPoint()})[2] == Minimap)
     ns.launcher:GetScript("OnClick")(ns.launcher, "LeftButton")
-    assert(ns.options:IsShown())
+    assert(ns.customize:IsShown() and ns.customize.page == "general")
     ns.launcher:GetScript("OnClick")(ns.launcher, "RightButton")
     assert(ns.customize:IsShown() and ns.customize.page == "trackers")
+    local trackerPage = ns.customize.pages.trackers
+    trackerPage.trackerScale:SetValue(1.43) Tick()
+    assert(math.abs(ns.db.trackers.styles.essential.scale - 1.43) < 0.001)
+    assert(not ns.trackerAssistant:IsShown(), "Direct tracker editing launched the wizard")
+    ns.db.trackers.styles.essential.scale = 1 ns.QueueLayout() Tick()
     ns.customize:Hide()
     local frame, item = trackerFixture, trackerFixture.item
     local second = trackerFixture.second

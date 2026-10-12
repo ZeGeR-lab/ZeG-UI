@@ -1,7 +1,7 @@
 local _, ns = ...
-local pages = {{"profiles", "Profiles"}, {"layout", "Alignment"}, {"bars", "Action bars"}, {"fonts", "Fonts"},
-    {"themes", "Themes"}, {"auras", "Buffs / tooltips"}, {"swing", "Swing timer"}, {"fade", "Idle fading"},
-    {"meters", "Damage meters"}, {"trackers", "Trackers"}}
+local pages = {{"general", "Overview"}, {"trackers", "Cooldown tracker"}, {"bars", "Action bars"},
+    {"layout", "Positions"}, {"auras", "Buffs / tooltips"}, {"swing", "Swing timers"}, {"meters", "Damage meters"},
+    {"themes", "Colors / theme"}, {"fonts", "Fonts"}, {"fade", "Idle visibility"}, {"profiles", "Profiles"}}
 local fontKeys = {"names", "health", "keybinds", "cooldowns", "casts", "chat", "auras", "tooltip", "swing", "meters"}
 local function Label(parent, text, x, y, size)
     local label = ns.Font(parent, size or 13)
@@ -239,7 +239,7 @@ local function Fading(page)
     Number(page, "Fade duration (seconds)", -126, function() return ns.db.fade.speed end, function(v) ns.db.fade.speed = v end, 0.05, 3, 0.05)
     for i, key in ipairs({"chat", "bags", "menu"}) do
         local group = key
-        Toggle(page, "Fade " .. group, -168 - (i - 1) * 42, function() return ns.db.fade[group] end, function(v) ns.db.fade[group] = v end)
+        Toggle(page, "Fade " .. group, -168 - (i - 1) * 38, function() return ns.db.fade[group] end, function(v) ns.db.fade[group] = v end)
     end
     Help(page, "Hover, typing, combat and editing restore full opacity. Action, unit and cast bars remain visible.", -315)
 end
@@ -272,40 +272,111 @@ local function Meters(page)
     Help(page, "Uses the HUD panel, border and text colors. Custom bar color applies when Bar colors is set to Custom color.", -344)
     Help(page, "Enable the meter in WoW's options. Use its settings and Edit Mode for class colors, row height, window size and movement.", -404)
 end
+local function Overview(page)
+    Label(page, "HUD essentials", 0, 0, 16)
+    local scale = ns.SettingSlider(page, 0, -34, 550, 0.65, 1.4, 0.01,
+        function() return ns.db.scale end, function(v) ns.db.scale = v end, Changed, "HUD scale")
+    Refresh(page, function() scale:RefreshValue() end)
+    Number(page, "Action button size", -94, function() return ns.db.buttonSize end,
+        function(v) ns.db.buttonSize = v end, 28, 64, 1)
+    local opacity = ns.SettingSlider(page, 0, -136, 550, 0.25, 1, 0.01,
+        function() return ns.db.opacity end, function(v) ns.db.opacity = v end, Changed, "HUD opacity")
+    Refresh(page, function() opacity:RefreshValue() end)
+    Label(page, "Common settings", 0, -202, 16)
+    Button(page, "Unit frame appearance", 0, -236, 266, function() ns.OpenAppearance("player") end)
+    Button(page, "Minimap settings", 284, -236, 266, ns.OpenMinimapOptions)
+    Button(page, "HUD modules / utilities", 0, -278, 266, ns.OpenOptions)
+    Button(page, "Move panels", 284, -278, 266, function() ns.Unlock(true) ns.OpenCustomize("layout") end)
+    Button(page, "Cooldown tracker", 0, -320, 266, function() ns.OpenCustomize("trackers") end)
+    Button(page, "Save / load profiles", 284, -320, 266, function() ns.OpenCustomize("profiles") end)
+    Help(page, "Use the sidebar for direct edits. Changes save automatically; protected layout changes apply after combat. Tracker setup is optional.", -384)
+end
 local function Trackers(page)
+    local window = page.window
+    window.trackerGroup = window.trackerGroup or "essential"
+    window.trackerPanel = window.trackerPanel or "groups"
     local status = Label(page, "", 0, 0, 12) status:SetWidth(550)
     Refresh(page, function() status:SetText(ns.TrackerStatus()) end)
-    Toggle(page, "Skin Blizzard trackers", -36, function() return ns.db.trackers.enabled end,
-        function(v) ns.db.trackers.enabled = v end)
-    Button(page, "Enable Blizzard tracking", 0, -78, 266, ns.EnableBlizzardTrackers)
-    Button(page, "Choose spells in Blizzard", 284, -78, 266, ns.OpenBlizzardTrackers)
-    Toggle(page, "Enable tracking on login", -120, function() return ns.db.trackers.autoEnable end,
-        function(v) ns.db.trackers.autoEnable = v end)
-    Toggle(page, "Group background", -162, function() return ns.db.trackers.container end,
-        function(v) ns.db.trackers.container = v end)
-    Number(page, "Timer text size", -204, function() return ns.db.trackers.fontSize end,
-        function(v) ns.db.trackers.fontSize = v end, 8, 32, 1)
+    Button(page, "Edit groups", 0, -30, 172, function() window.trackerPanel = "groups" ns.RefreshCustomize() end)
+    Button(page, "Manager settings", 189, -30, 172, function() window.trackerPanel = "manager" ns.RefreshCustomize() end)
+    Button(page, "Optional guided setup", 378, -30, 172, ns.OpenTrackerAssistant)
+    local editor = CreateFrame("Frame", nil, page) editor.window = window
+    editor:SetAllPoints(page) page.groupEditor = editor
+    local manager = CreateFrame("Frame", nil, page) manager.window = window
+    manager:SetAllPoints(page) page.managerSettings = manager
+    -- Content frames are below the shared navigation buttons in draw order.
+    local groupButtons = {}
     for i, group in ipairs(ns.trackerGroups) do
         local key = group.key
-        Button(page, group.label .. " skin: toggle", 0, -246 - (i - 1) * 34, 266, function()
-            ns.db.trackers.groups[key] = not ns.db.trackers.groups[key] Changed()
-        end)
-        local move = Button(page, "Move group", 284, -246 - (i - 1) * 34, 266, function()
-            if not ns.TrackerMoverVisible("tracker" .. key) then ns.Print("Enable Blizzard tracking and this group's skin first.") return end
-            ns.Unlock(true)
-        end)
-        Refresh(page, function()
-            move.label:SetText(group.label .. (ns.db.trackers.groups[key] and " | Move" or " | Native"))
+        groupButtons[key] = Button(editor, group.label, (i-1)*140, -76, 130, function()
+            window.trackerGroup = key ns.RefreshCustomize()
         end)
     end
-    Button(page, "Reset group positions", 0, -390, 266, function()
-        for _, group in ipairs(ns.trackerGroups) do ns.db.positions["tracker" .. group.key] = nil end
-        Changed()
+    local function Pref() return ns.db.trackers.styles[window.trackerGroup] end
+    local function MiniChoice(text, x, y, choices, get, set)
+        local button = Button(editor, "", x, y, 266, function()
+            local index = 0 for i, choice in ipairs(choices) do if choice[1] == get() then index = i end end
+            set(choices[index % #choices+1][1]) Changed()
+        end)
+        Refresh(editor, function()
+            for _, choice in ipairs(choices) do if choice[1] == get() then button.label:SetText(text .. ": " .. choice[2]) break end end
+        end)
+        return button
+    end
+    MiniChoice("Skin", 0, -118, {{"framed", "Framed"}, {"minimal", "Minimal"}, {"round", "Round"}, {"tiles", "Tiles"}},
+        function() return Pref().skin end, function(v) Pref().skin = v end)
+    local enabled = Button(editor, "", 284, -118, 266, function()
+        local key = window.trackerGroup ns.db.trackers.groups[key] = not ns.db.trackers.groups[key] Changed()
     end)
-    Button(page, "Guided tracker setup", 284, -390, 266, function() ns.OpenTrackerAssistant() end)
-    Help(page, "Blizzard owns spell selection, visibility, icon size and timers. Skin toggles restore native visuals; they do not stop tracking. Move only outside combat.", -428)
+    page.trackerScale = ns.SettingSlider(editor, 0, -158, 550, 0.25, 2.5, 0.01,
+        function() return Pref().scale end, function(v) Pref().scale = v end, Changed, "Group scale")
+    Number(editor, "Text size (0 = HUD)", -214, function() return Pref().fontSize end,
+        function(v) Pref().fontSize = v end, 0, 32, 1)
+    Toggle(editor, "Group background", -252, function() return Pref().background end,
+        function(v) Pref().background = v end)
+    local opacity = ns.SettingSlider(editor, 0, -292, 550, 0, 1, 0.01,
+        function() return Pref().opacity >= 0 and Pref().opacity or ns.db.opacity end,
+        function(v) Pref().opacity = v end, Changed, "Background opacity")
+    local visibility = MiniChoice("Display", 0, -344, {{"always", "Always"}, {"dimCountdown", "Dim on countdown"}, {"hideCountdown", "Hide on countdown"}},
+        function() return Pref().visibility end, function(v)
+            if not ns.TrackerCountdownVisibilitySupported() then ns.Print("Countdown hiding is unavailable on this client.") return end
+            Pref().visibility = v
+        end)
+    local layout = MiniChoice("Slots", 284, -344, {{"fixed", "Fixed"}, {"compactOutOfCombat", "Compact out of combat"}},
+        function() return Pref().layout end, function(v) Pref().layout = v end)
+    local timers = Button(editor, "", 0, -382, 172, function() Pref().timers = not Pref().timers Changed() end)
+    Button(editor, "Move group", 189, -382, 172, function()
+        if not ns.TrackerMoverVisible("tracker" .. window.trackerGroup) then ns.Print("Enable tracking and this group's skin first.") return end
+        ns.Unlock(true)
+    end)
+    Button(editor, "Reset this group", 378, -382, 172, function()
+        ns.db.trackers.styles[window.trackerGroup] = ns.Copy(ns.defaults.trackers.styles[window.trackerGroup])
+        ns.db.positions["tracker" .. window.trackerGroup] = nil Changed()
+    end)
+    Help(editor, "Hide/dim follows the native countdown (including buff/charge timers). Compaction works outside combat only. Spell selection and orientation stay in Blizzard's editor.", -422)
+    Toggle(manager, "Skin Blizzard trackers", -76, function() return ns.db.trackers.enabled end,
+        function(v) ns.db.trackers.enabled = v end)
+    Button(manager, "Enable Blizzard tracking", 0, -118, 266, ns.EnableBlizzardTrackers)
+    Button(manager, "Select monitored spells", 284, -118, 266, ns.OpenBlizzardTrackers)
+    Toggle(manager, "Enable tracking on login", -160, function() return ns.db.trackers.autoEnable end,
+        function(v) ns.db.trackers.autoEnable = v end)
+    Toggle(manager, "Allow group backgrounds", -202, function() return ns.db.trackers.container end,
+        function(v) ns.db.trackers.container = v end)
+    Number(manager, "Default timer text size", -244, function() return ns.db.trackers.fontSize end,
+        function(v) ns.db.trackers.fontSize = v end, 8, 32, 1)
+    Help(manager, "Edit groups sets each group's appearance directly. Use Blizzard's editor to choose spells and available alerts. Setup is optional; no wizard is needed to change a skin.", -316)
+    Refresh(page, function()
+        editor:SetShown(window.trackerPanel == "groups") manager:SetShown(window.trackerPanel == "manager")
+        for key, button in pairs(groupButtons) do ns.ThemeButton(button, key == window.trackerGroup) end
+        enabled.label:SetText(ns.db.trackers.groups[window.trackerGroup] and "Group skin: On" or "Group skin: Off")
+        ns.ThemeButton(enabled, ns.db.trackers.groups[window.trackerGroup])
+        page.trackerScale:RefreshValue() opacity:RefreshValue()
+        local cooldowns = window.trackerGroup == "essential" or window.trackerGroup == "utility"
+        visibility:SetShown(cooldowns) layout:SetShown(cooldowns)
+        timers:SetShown(window.trackerGroup ~= "bars") timers.label:SetText(Pref().timers and "Icon timers: On" or "Icon timers: Off")
+    end)
 end
-local builders = {profiles = Profiles, layout = Alignment, bars = Bars, fonts = Fonts, themes = Themes, auras = Auras,
+local builders = {general = Overview, profiles = Profiles, layout = Alignment, bars = Bars, fonts = Fonts, themes = Themes, auras = Auras,
     swing = Swing, fade = Fading, meters = Meters, trackers = Trackers}
 function ns.CreateCustomize()
     if ns.customize then return end
@@ -316,13 +387,13 @@ function ns.CreateCustomize()
     window:SetClampedToScreen(true) window:EnableMouse(true) window:SetMovable(true) window:RegisterForDrag("LeftButton")
     window:SetScript("OnDragStart", window.StartMoving) window:SetScript("OnDragStop", window.StopMovingOrSizing)
     ns.Panel(window, 0.98)
-    Label(window, "Customize ZeG UI", 24, -20, 20)
-    Label(window, "Profiles, layout and finishing touches", 24, -49, 13)
-    Button(window, "Main settings", 602, -18, 120, function() window:Hide() ns.OpenOptions() end)
+    Label(window, "ZeG UI Settings", 24, -20, 20)
+    Label(window, "Choose a section; edit directly; changes save automatically", 24, -49, 13)
+    Button(window, "HUD modules", 602, -18, 120, function() window:Hide() ns.OpenOptions() end)
     Button(window, "X", 736, -18, 26, function() window:Hide() end)
     for i, item in ipairs(pages) do
         local key = item[1]
-        window.tabs[key] = Button(window, item[2], 24, -91 - (i - 1) * 42, 136, function() ns.OpenCustomize(key) end)
+        window.tabs[key] = Button(window, item[2], 24, -91 - (i - 1) * 38, 136, function() ns.OpenCustomize(key) end)
         local page = CreateFrame("Frame", nil, window) page.window = window
         page:SetPoint("TOPLEFT", 194, -91) page:SetSize(550, 466) page:Hide()
         window.pages[key] = page builders[key](page)
@@ -354,9 +425,10 @@ end
 function ns.OpenCustomize(page)
     if ns.unsupported then ns.Info() return end
     ns.CreateCustomize()
+    if ns.trackerAssistant then ns.trackerAssistant:Hide() end
     if ns.options then ns.options:Hide() end
     if ns.appearance then ns.appearance:Hide() end
     if ns.minimapOptions then ns.minimapOptions:Hide() end
-    ns.customize.page = builders[page] and page or ns.customize.page or "profiles"
+    ns.customize.page = builders[page] and page or ns.customize.page or "general"
     ns.customize:Show() ns.RefreshCustomize()
 end

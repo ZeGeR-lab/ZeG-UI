@@ -1,6 +1,8 @@
 local _, ns = ...
 local auraPanels, auraGeometry, iconCoordinates, tooltipPanels, tooltipOwners, tooltipAlpha = {}, {}, {}, {}, {}, {}
 local maskedSwing, fadingFrames = {}, {}
+local tooltipLineCounts, tooltipDirty = {}, {}
+ns.tooltipStylePasses = 0
 ns.swingDisplays = {}
 local liveAuras, liveTooltip, liveSwing, liveFade
 local swingSources = {{"SwingTimerMainHandFrame", "swingmain"}, {"SwingTimerOffHandFrame", "swingoff"},
@@ -154,6 +156,11 @@ local function StyleTooltip(frame)
         panel:SetFrameStrata("TOOLTIP")
         tooltipPanels[frame] = panel
     end
+    local count = frame.GetNumLines and frame:GetNumLines()
+    local restyle = tooltipDirty[frame] or (ns.Finite(count) and tooltipLineCounts[frame] ~= count)
+    if restyle then
+    tooltipDirty[frame] = nil tooltipLineCounts[frame] = ns.Finite(count) and count or nil
+    ns.tooltipStylePasses = ns.tooltipStylePasses + 1
     ns.BarPanel(panel, 0.97) panel:Show()
     if frame.NineSlice then
         if tooltipAlpha[frame] == nil then
@@ -163,7 +170,6 @@ local function StyleTooltip(frame)
         frame.NineSlice:SetAlpha(0)
     end
     local name = frame:GetName()
-    local count = frame.GetNumLines and frame:GetNumLines()
     if name and ns.Finite(count) then
         for i = 1, math.min(80, count) do
             for _, side in ipairs({"Left", "Right"}) do
@@ -175,6 +181,7 @@ local function StyleTooltip(frame)
                 end
             end
         end
+    end
     end
     -- ItemRef and shopping tooltips keep Blizzard's placement relationship.
     if frame ~= GameTooltip or not tooltipOwners[frame] then return end
@@ -206,8 +213,13 @@ function ns.ApplyTooltips()
     for _, name in ipairs({"GameTooltip", "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2"}) do
         local frame = _G[name]
         if TooltipAllowed(frame) then
-            ns.Hook(frame, "SetOwner", function(self, owner) tooltipOwners[self] = owner StyleTooltip(self) end)
-            ns.Hook(frame, "Show", StyleTooltip)
+            tooltipDirty[frame] = true
+            ns.Hook(frame, "SetOwner", function(self, owner) tooltipOwners[self] = owner end)
+            ns.Hook(frame, "Show", function(self)
+                -- Native action tooltips may Show on every hover update. The
+                -- actual skin is cached and refreshed by the presentation poll.
+                if not tooltipPanels[self] then tooltipDirty[self] = true StyleTooltip(self) end
+            end)
             StyleTooltip(frame)
         end
     end

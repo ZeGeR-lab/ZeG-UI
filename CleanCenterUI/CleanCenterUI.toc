@@ -2,7 +2,7 @@
 ## Title: ZeG UI
 ## Notes: A quiet, centered HUD. Applies its preset on first login; choose one to eight action bars.
 ## Author: ZeG UI
-## Version: 0.4.11
+## Version: 0.4.12
 ## SavedVariables: CleanCenterUIProfilesDB
 ## SavedVariablesPerCharacter: CleanCenterUIDB
 
@@ -21,6 +21,7 @@ Appearance.lua
 Presentation.lua
 DamageMeters.lua
 Trackers.lua
+Widgets.lua
 CustomizeSettings.lua
 Settings.lua
 Launcher.lua
