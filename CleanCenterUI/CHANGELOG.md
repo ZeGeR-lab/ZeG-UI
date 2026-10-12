@@ -1,8 +1,16 @@
+## 0.4.11 — Optional compact countdown layout
+
+- Fixed slots or Compact outside combat for Essential/Utility countdown hiding.
+- Readable-state compaction outside combat; no position changes in combat or on secret state.
+- Restore original native item positions when fixed mode is selected or hiding is disabled.
+
 ## 0.4.10 — Countdown display visibility
 
 - Essential/Utility groups: Always show, Dim during countdown, Hide during countdown.
 - Uses the native cooldown widget's display boolean directly through SetAlphaFromBoolean; no timer arithmetic, spell queries, or secret-state branching.
-- Preserves native slots and tracking. Icon alpha returns to its original value after the native countdown stops or the feature is disabled.
+- Optional Fixed slots / Compact outside combat layout for countdown hiding.
+- Compaction uses only readable native state and geometry; it freezes in combat and restores native positions when disabled.
+- Preserves native tracking. Icon alpha returns to its original value after the native countdown stops or the feature is disabled.
 - Group backgrounds suppressed in hide/dim modes; unlocked/editing icons remain visible for positioning.
 - Countdown hiding is not a spell-usability test: native active-buff, global-cooldown or charge-recharge displays may also hide an icon. Buff groups retain native visibility.
 - Unsupported clients report the missing alpha capability. Live Forever validation still required.

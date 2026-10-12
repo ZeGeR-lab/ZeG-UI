@@ -13,11 +13,19 @@ local opacityItems = {}
 function ns.TrackerCountdownVisibilitySupported()
     return UIParent and UIParent.SetAlphaFromBoolean ~= nil
 end
+local function RestoreItemGeometry(frame, record)
+    if not record.compacted then return true end
+    if InCombatLockdown() then ns.pending = true return false end
+    ns.ClearPoints(frame)
+    for _, point in ipairs(record.points) do ns.SetPoint(frame, unpack(point)) end
+    record.compacted = nil
+    return true
+end
 local function RestoreItemOpacity(frame)
     local record = opacityItems[frame]
     if record then
         if frame and (not frame.IsForbidden or not frame:IsForbidden()) then frame:SetAlpha(record.alpha) end
-        opacityItems[frame] = nil
+        if RestoreItemGeometry(frame, record) then opacityItems[frame] = nil end
     end
 end
 function ns.UpdateTrackerVisibility()
@@ -32,14 +40,67 @@ function ns.UpdateTrackerVisibility()
             else frame:SetAlpha(record.alpha) end
         else RestoreItemOpacity(frame) end
     end
+    if ns.CompactTrackerLayout then ns.CompactTrackerLayout() end
 end
 local function ConfigureItemOpacity(frame, style, key)
     if style.visibility == "always" or key == "buffs" or key == "bars" then RestoreItemOpacity(frame) return end
     if not frame.SetAlphaFromBoolean or not frame.Cooldown or not frame.Cooldown.IsShown then return end
     local record = opacityItems[frame]
     if not record then
-        record = {alpha = frame:GetAlpha(), cooldown = frame.Cooldown, key = key}
+        record = {alpha = frame:GetAlpha(), cooldown = frame.Cooldown, key = key, points = {}}
+        for i = 1, frame:GetNumPoints() do record.points[i] = {frame:GetPoint(i)} end
+        for _, group in ipairs(ns.trackerGroups) do if group.key == key then record.owner = _G[group.name] end end
+        local x, y = frame:GetCenter()
+        local owner = record.owner
+        if owner then
+            local ox, oy = owner:GetCenter()
+            local fs, os = frame:GetEffectiveScale(), owner:GetEffectiveScale()
+            if ns.Finite(x) and ns.Finite(y) and ns.Finite(ox) and ns.Finite(oy)
+                and ns.Finite(fs) and ns.Finite(os) and os > 0 then
+                record.x, record.y = x * fs / os - ox, y * fs / os - oy
+            end
+        end
         opacityItems[frame] = record
+    end
+end
+function ns.CompactTrackerLayout()
+    if not ns.db or InCombatLockdown() or ns.blizzardEditing then return end
+    for _, group in ipairs(ns.trackerGroups) do
+        local style = ns.db.trackers.styles[group.key]
+        local compact = ns.db.enabled and ns.db.trackers.enabled and ns.db.trackers.groups[group.key]
+            and style.visibility == "hideCountdown" and style.layout == "compactOutOfCombat" and not ns.unlocked
+        local slots, readable = {}, true
+        for frame, record in pairs(opacityItems) do
+            if record.key == group.key then
+                if compact then
+                    local counting = record.cooldown:IsShown()
+                    if not ns.Readable(counting) or not ns.Finite(record.x) or not ns.Finite(record.y) then readable = false
+                    else slots[#slots+1] = {frame = frame, record = record, counting = counting} end
+                else RestoreItemGeometry(frame, record) end
+            end
+        end
+        if compact and readable then
+            table.sort(slots, function(a, b)
+                local ay, by = math.floor(a.record.y + 0.5), math.floor(b.record.y + 0.5)
+                if ay ~= by then return ay > by end
+                return a.record.x < b.record.x
+            end)
+            local nextSlot = 1
+            for _, slot in ipairs(slots) do
+                if not slot.counting then
+                    local target = slots[nextSlot].record
+                    ns.ClearPoints(slot.frame)
+                    ns.SetPoint(slot.frame, "CENTER", slot.record.owner, "CENTER", target.x, target.y)
+                    slot.record.compacted = true
+                    nextSlot = nextSlot + 1
+                else RestoreItemGeometry(slot.frame, slot.record) end
+            end
+        elseif compact then
+            -- Do not retain stale compaction when readable state disappears.
+            for frame, record in pairs(opacityItems) do
+                if record.key == group.key then RestoreItemGeometry(frame, record) end
+            end
+        end
     end
 end
 local media = "Interface\\AddOns\\CleanCenterUI\\Media\\"

@@ -1,3 +1,3 @@
-ZeG UI 0.4.10
+ZeG UI 0.4.11
 All Lua sources compile; 64 simulated scenarios passed.
-New visibility tests forward opaque native countdown booleans to an engine alpha sink, verify hide/dim/return during combat, positioning override and restoring Always show. Existing skins, wizard, profiles, minimap and triangle scenarios pass. Live Forever validation remains required.
+Tests cover opaque countdown opacity in combat, ready-icon compaction outside combat, layout freeze during combat, native position restoration and existing skin/wizard/profile/minimap/triangle behavior. Live Forever verification still required.

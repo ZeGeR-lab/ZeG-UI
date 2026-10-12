@@ -43,6 +43,7 @@ local function Valid(path, value)
         if #value > 32 or value:find("[%c|]") then return false end
         if allowed[path] then return allowed[path][value] ~= nil end
         if path:match("%.outline$") then return value == "" or value == "OUTLINE" or value == "THICKOUTLINE" end
+        if path:match("^trackers%.styles%.[^.]+%.layout$") then return value == "fixed" or value == "compactOutOfCombat" end
         if path:match("^trackers%.styles%.[^.]+%.visibility$") then return value == "always" or value == "hideCountdown" or value == "dimCountdown" end
         if path:match("%.skin$") then return value == "framed" or value == "minimal" or value == "round" or value == "tiles" end
         if path:match("[Ss]hape$") then return value == "square" or value == "triangles" or value == "inherit" end

@@ -1020,6 +1020,15 @@ if TEST_MODE == "trackers_native" then
     item.text = item:CreateFontString(nil, "OVERLAY")
     item.text:SetFont("NativeFont", 17, "")
     trackerFixture.item = item
+    trackerFixture.GetCenter = function() return 100, 100 end
+    item.GetCenter = function() return 70, 100 end
+    item:SetPoint("CENTER", trackerFixture, "CENTER", -30, 0)
+    local second = New("Frame", nil, trackerFixture)
+    second.Icon = second:CreateTexture(nil, "ARTWORK")
+    second.Cooldown = New("Cooldown", nil, second)
+    second.GetCenter = function() return 130, 100 end
+    second:SetPoint("CENTER", trackerFixture, "CENTER", 30, 0)
+    trackerFixture.second = second
     BuffBarCooldownViewer = New("Frame", "BuffBarCooldownViewer", UIParent)
     local barItem = New("Frame", nil, BuffBarCooldownViewer)
     barItem.Icon = New("Frame", nil, barItem)
@@ -1183,6 +1192,20 @@ if TEST_MODE == "trackers_native" then
     assert(ns.customize:IsShown() and ns.customize.page == "trackers")
     ns.customize:Hide()
     local frame, item = trackerFixture, trackerFixture.item
+    local second = trackerFixture.second
+    ns.db.trackers.styles.essential.visibility = "hideCountdown"
+    ns.db.trackers.styles.essential.layout = "compactOutOfCombat"
+    item.Cooldown:Show() second.Cooldown:Hide()
+    ns.ApplyTrackers()
+    assert(({second:GetPoint()})[4] == -30, "Ready icon did not collapse into the first slot")
+    combat = true
+    item.Cooldown:Hide() second.Cooldown:Show()
+    local beforeCompact = mutations ns.UpdateTrackerVisibility()
+    assert(mutations == beforeCompact, "Compaction changed protected layout during combat")
+    assert(({second:GetPoint()})[4] == -30, "Combat compaction moved a slot")
+    combat = false ns.db.trackers.styles.essential.layout = "fixed" ns.ApplyTrackers()
+    assert(({second:GetPoint()})[4] == 30, "Fixed slots did not restore native positions")
+    item.Cooldown:Hide()
     local nativeAlpha = item:GetAlpha()
     ns.db.trackers.styles.essential.visibility = "hideCountdown" ns.ApplyTrackers()
     local originalShown = item.Cooldown.IsShown

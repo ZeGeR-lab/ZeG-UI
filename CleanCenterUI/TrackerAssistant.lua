@@ -60,6 +60,8 @@ function ns.RefreshTrackerAssistant()
     local modes = {always = "Always show", hideCountdown = "Hide during countdown", dimCountdown = "Dim during countdown"}
     w.visibility.label:SetText(ns.TrackerCountdownVisibilitySupported() and (modes[w.draft.visibility] or modes.always) or "Countdown hiding unavailable")
     w.visibility:SetShown(w.group == "essential" or w.group == "utility")
+    w.layout.label:SetText(w.draft.layout == "compactOutOfCombat" and "Compact outside combat" or "Fixed slots")
+    w.layout:SetShown(w.group == "essential" or w.group == "utility")
     w.preview:SetScale(w.draft.scale)
     ns.Panel(w.preview, w.draft.opacity >= 0 and w.draft.opacity or ns.db.opacity)
     local color = ns.db.colors.panel
@@ -81,7 +83,7 @@ function ns.RefreshTrackerAssistant()
         item.time:SetFont(ns.FONT, w.draft.fontSize, "OUTLINE")
     end
     w.spells:SetText("For " .. group.label .. ": select the spells or buffs you want in Blizzard's editor. ZeG UI will style that existing group. Selection is not completed by saving this wizard.")
-    w.summary:SetText(group.label .. ": " .. math.floor(w.draft.scale * 100 + 0.5) .. "% size, " .. w.draft.fontSize .. " pt text, " .. w.draft.skin .. " skin, " .. (modes[w.draft.visibility] or modes.always) .. ", " .. (w.draft.background and "background on." or "background off.") .. "\n\nSave styling, then unlock and drag the native group. Repeat this assistant for your other groups.")
+    w.summary:SetText(group.label .. ": " .. math.floor(w.draft.scale * 100 + 0.5) .. "% size, " .. w.draft.fontSize .. " pt text, " .. w.draft.skin .. " skin, " .. (modes[w.draft.visibility] or modes.always) .. ", " .. (w.draft.layout == "compactOutOfCombat" and "compact outside combat, " or "fixed slots, ") .. (w.draft.background and "background on." or "background off.") .. "\n\nSave styling, then unlock and drag the native group. Repeat this assistant for your other groups.")
     w.status:SetText(w.saved and "Style saved. Configure spells in Blizzard, then place the group." or "Preview uses sample icons and durations. Nothing changes until you save.")
 end
 function ns.OpenTrackerAssistant()
@@ -139,7 +141,11 @@ function ns.OpenTrackerAssistant()
             for i, mode in ipairs(modes) do if mode == w.draft.visibility then index = i end end
             w.saved = false w.draft.visibility = modes[index % #modes + 1] ns.RefreshTrackerAssistant()
         end)
-        w.background = Button(style, "", 0, -120, 550, function() w.saved = false w.draft.background = not w.draft.background ns.RefreshTrackerAssistant() end)
+        w.background = Button(style, "", 0, -120, 270, function() w.saved = false w.draft.background = not w.draft.background ns.RefreshTrackerAssistant() end)
+        w.layout = Button(style, "", 284, -120, 266, function()
+            w.saved = false w.draft.layout = w.draft.layout == "fixed" and "compactOutOfCombat" or "fixed"
+            ns.RefreshTrackerAssistant()
+        end)
         Label(style, "Sample preview — not live combat tracking", 0, -204, 550, 12)
         w.preview = CreateFrame("Frame", nil, style)
         w.preview:SetSize(310, 116) w.preview:SetPoint("TOPLEFT", 4, -232) ns.Panel(w.preview, 0.9)
@@ -160,7 +166,7 @@ function ns.OpenTrackerAssistant()
             item.name = Label(item, i == 1 and "Sample buff" or "Sample effect", 48, -4, 200, 12)
             w.previewItems[i] = item
         end
-        Label(style, "Hide/dim follows the native countdown display, including buff or charge timers where used. Slots stay fixed; group backgrounds are suppressed in these modes. Layout remains in Blizzard Edit Mode.", 0, -414, 550, 12)
+        Label(style, "Hide/dim follows the native countdown display, including buff or charge timers where used. Compaction works only outside combat with readable state; combat slots stay fixed. Backgrounds are suppressed in hide/dim modes.", 0, -414, 550, 12)
         local native = w.pages[3]
         Label(native, "3. Choose monitored spells and notifications", 0, 0, 550, 16)
         w.spells = Label(native, "", 0, -40, 550)
