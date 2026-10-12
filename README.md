@@ -1,6 +1,6 @@
 # ZeG UI
 
-Full WoW Forever UI. Current test build: **0.4.6**.
+Full WoW Forever UI. Current test build: **0.4.7**.
 
 ## Installation
 

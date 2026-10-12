@@ -1,3 +1,11 @@
+## 0.4.7 — Minimap launcher and triangle casting visuals
+
+- Put the launcher on an independent UIParent overlay to avoid minimap-child rendering/clipping.
+- Use a visible teal gear icon inside the map corner, above native artwork.
+- Explicitly show and refresh the button after layout changes; retry creation when the minimap becomes available.
+- Native minimap visibility is not changed.
+- Clip nested native cast fill, completion flash and interrupt animation textures to the same triangle as their action button; restore original visuals in square mode.
+
 ## 0.4.6 — ZeG UI
 
 - Renamed the displayed addon to ZeG UI.

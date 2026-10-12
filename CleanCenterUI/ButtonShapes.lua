@@ -12,8 +12,33 @@ end
 
 local function MaskRegion(state, region)
     if region and region.AddMaskTexture and not state.masked[region] then
-        region:AddMaskTexture(state.mask)
-        state.masked[region] = true
+        local parent = region:GetParent()
+        local mask = state.mask
+        if parent ~= state.button and parent and parent.CreateMaskTexture then
+            mask = state.childMasks[parent]
+            if not mask then
+                mask = parent:CreateMaskTexture(nil, "ARTWORK")
+                mask:SetAllPoints(state.button)
+                state.childMasks[parent] = mask
+            end
+            mask:SetTexture(state.fillTexture, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+        end
+        region:AddMaskTexture(mask)
+        state.masked[region] = mask
+    end
+end
+
+local function MaskAnimationTree(state, frame, depth)
+    if not frame or frame == state.panel or (frame.IsForbidden and frame:IsForbidden()) then return end
+    -- Native casts use nested Fill/EndBurst/interrupt frames, separate from the
+    -- cooldown widget. Clip their textures while preserving native timing/scripts.
+    if frame.GetRegions then
+        for _, region in ipairs({frame:GetRegions()}) do
+            if region.GetObjectType and region:GetObjectType() == "Texture" then MaskRegion(state, region) end
+        end
+    end
+    if depth > 0 and frame.GetChildren then
+        for _, child in ipairs({frame:GetChildren()}) do MaskAnimationTree(state, child, depth - 1) end
     end
 end
 
@@ -21,7 +46,7 @@ function ns.ShapeButton(button, icon, index, metrics)
     local state = ns.buttonShapes[button]
     if not metrics.triangle then
         if not state or not state.active then return end
-        for region in pairs(state.masked) do region:RemoveMaskTexture(state.mask) end
+        for region, mask in pairs(state.masked) do region:RemoveMaskTexture(mask) end
         state.masked = {}
         state.panel:Hide()
         state.border:Hide()
@@ -41,7 +66,7 @@ function ns.ShapeButton(button, icon, index, metrics)
     end
 
     if not state then
-        state = {masked = {}, cooldowns = {}, countPoints = {}, hitInsets = {0, 0, 0, 0}}
+        state = {button = button, childMasks = {}, masked = {}, cooldowns = {}, countPoints = {}, hitInsets = {0, 0, 0, 0}}
         if button.GetHitRectInsets then
             local insets = {button:GetHitRectInsets()}
             for i = 1, 4 do if ns.Readable(insets[i]) and type(insets[i]) == "number" then state.hitInsets[i] = insets[i] end end
@@ -65,6 +90,8 @@ function ns.ShapeButton(button, icon, index, metrics)
     end
     local direction = index % 2 == 1 and "Up" or "Down"
     local fill = media .. "Triangle" .. direction .. ".tga"
+    state.fillTexture = fill
+    for _, mask in pairs(state.childMasks) do mask:SetTexture(fill, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE") end
     state.mask:SetTexture(fill, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
     state.fill:SetTexture(fill)
     local palette = ns.db.colors
@@ -97,6 +124,7 @@ function ns.ShapeButton(button, icon, index, metrics)
             if cooldown.SetDrawBling then cooldown:SetDrawBling(false) end
         end
     end
+    for _, child in ipairs({button:GetChildren()}) do MaskAnimationTree(state, child, 4) end
     -- WoW buttons have rectangular hit regions. Give each overlapping frame
     -- a disjoint center column, leaving a one-pixel gap between click regions.
     -- Secure native buttons still receive clicks and item/spell drag operations.
