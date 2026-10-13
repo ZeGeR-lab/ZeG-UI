@@ -2,6 +2,7 @@ local _, ns = ...
 local barNames = { "MainActionBar", "MultiBarBottomLeft", "MultiBarBottomRight",
     "MultiBarRight", "MultiBarLeft", "MultiBar5", "MultiBar6", "MultiBar7" }
 ns.barNames = barNames
+ns.actionBorderArt = {}
 ns.barAnchors = {}
 local barPoll = CreateFrame("Frame")
 ns.barPoll = barPoll
@@ -72,7 +73,13 @@ function ns.SkinActionButton(button, index, metrics)
     local hotkey = button.HotKey or _G[button:GetName() .. "HotKey"]
     if hotkey then
         hotkey:ClearAllPoints()
-        if metrics.triangle then hotkey:SetPoint("TOP", button, "BOTTOM", 0, -3)
+        if metrics.keyInside then
+            if metrics.triangle then
+                local edge = index % 2 == 1 and "BOTTOM" or "TOP"
+                hotkey:SetPoint(edge, button, edge, 0, index % 2 == 1 and 4 or -4)
+            elseif metrics.shape == "octagons" then hotkey:SetPoint("TOP", button, "TOP", 0, -5)
+            else hotkey:SetPoint("TOPRIGHT",button,"TOPRIGHT",-4,-4) end
+        elseif metrics.triangle then hotkey:SetPoint("TOP", button, "BOTTOM", 0, -3)
         else hotkey:SetPoint("TOPRIGHT", button, "BOTTOMRIGHT", 0, -3) end
         ns.StyleFont(hotkey, "keybinds", metrics.triangle and 10 or 11)
         hotkey:SetTextColor(unpack(ns.db.colors.text))
@@ -82,6 +89,14 @@ function ns.SkinActionButton(button, index, metrics)
     local cooldown = button.cooldown or button.Cooldown
     if cooldown and cooldown.SetSwipeColor then cooldown:SetSwipeColor(0, 0, 0, 0.72) end
     ns.ShapeButton(button, icon, index, metrics)
+    local art = ns.actionBorderArt[button]
+    if not art then art = button:CreateTexture(nil, "OVERLAY", nil, 7) art:SetAllPoints(button) ns.actionBorderArt[button] = art end
+    local kind = metrics.borderStyle or "thin"
+    local suffix = kind == "soft" and "Soft" or kind == "bold" and "Bold" or "Thin"
+    art:SetTexture("Interface\\AddOns\\CleanCenterUI\\Media\\SquareBorder" .. suffix .. ".tga")
+    local c = ns.db.colors.border art:SetVertexColor(c[1],c[2],c[3], ns.db.borders and kind ~= "none" and c[4] or 0)
+    art:SetShown(not metrics.shaped and not metrics.triangle)
+    ns.SetBorderColor(button.ccuiBackground,0,0,0,0)
     ns.StyleCooldownNumbers(button, metrics, index)
     ns.Hook(button, "UpdateHotkeys", ns.QueueLayout)
 end
@@ -110,6 +125,10 @@ local function PlaceBar(bar, row)
     -- The border is attached to the fixed presentation anchor, not to a
     -- native frame whose combat layout can be replaced by the client.
     bar.ccuiPanel = ns.Decorate(anchor, "ccuiPanel", 4)
+    local padding = metrics.keyInside and 1 or 4
+    bar.ccuiPanel:ClearAllPoints()
+    bar.ccuiPanel:SetPoint("TOPLEFT",anchor,"TOPLEFT",-padding,padding)
+    bar.ccuiPanel:SetPoint("BOTTOMRIGHT",anchor,"BOTTOMRIGHT",padding,-padding)
     bar:EnableMouse(false)
     Quiet(bar.BorderArt)
     Quiet(bar.EndCaps)
@@ -124,7 +143,7 @@ local function PlaceBar(bar, row)
         local container = button.container or button:GetParent()
         ns.SetSize(container, size, height)
         ns.ClearPoints(container)
-        local x, y = ((i - 1) % metrics.columns) * metrics.pitch, 18 + math.floor((i - 1) / metrics.columns) * metrics.lineStep
+        local x, y = ns.BarSlot(metrics, i)
         ns.SetPoint(container, "BOTTOMLEFT", bar, "BOTTOMLEFT", x, y)
         ns.FixedScale(button)
         ns.SetSize(button, size, height)

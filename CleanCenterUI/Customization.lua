@@ -1,7 +1,7 @@
 local _, ns = ...
 
 ns.defaults.barSettings = {}
-for i = 1, 8 do ns.defaults.barSettings[i] = {size = 0, spacing = -1, columns = 12, shape = "inherit"} end
+for i = 1, 8 do ns.defaults.barSettings[i] = {size = 0, spacing = -1, columns = 12, shape = "inherit", layout = "horizontal", border = "soft", keyPosition = "outside"} end
 ns.defaults.editor = {snap = true, grid = 8, guides = true}
 ns.defaults.fontFace = "standard"
 ns.defaults.fontSettings = {}
@@ -19,7 +19,7 @@ ns.defaults.meters = {enabled = true, colorMode = "native", color = {0.35, 0.8, 
 ns.defaults.trackers = {enabled = true, autoEnable = false, fontSize = 13, container = true,
     groups = {essential = true, utility = true, buffs = true, bars = true}, styles = {}}
 for _, key in ipairs({"essential", "utility", "buffs", "bars"}) do
-    ns.defaults.trackers.styles[key] = {scale = 1, fontSize = 0, background = true, skin = "framed", opacity = -1, timers = true, visibility = "always", layout = "fixed"}
+    ns.defaults.trackers.styles[key] = {scale = 1, fontSize = 0, background = true, skin = "framed", opacity = -1, timers = true, visibility = "always", layout = "fixed", arrangement = "native"}
 end
 ns.fontFaces = {standard = ns.FONT, friz = "Fonts\\FRIZQT__.TTF", arial = "Fonts\\ARIALN.TTF",
     skurri = "Fonts\\skurri.ttf", morpheus = "Fonts\\MORPHEUS.TTF"}
@@ -40,10 +40,12 @@ function ns.NormalizeCustomization()
     db.trackers.fontSize = Number(db.trackers.fontSize, 13, 8, 32, true)
     for key in pairs(ns.defaults.trackers.styles) do
         local style = db.trackers.styles[key]
+        if style.arrangement ~= "horizontal" and style.arrangement ~= "vertical" and style.arrangement ~= "cluster" and style.arrangement ~= "radial" then style.arrangement = "native" end
+        if key == "bars" and style.arrangement == "radial" then style.arrangement = "vertical" end
         if style.layout ~= "compactOutOfCombat" then style.layout = "fixed" end
         if style.visibility ~= "hideCountdown" and style.visibility ~= "dimCountdown" then style.visibility = "always" end
         if key == "buffs" or key == "bars" then style.visibility = "always" end
-        if style.skin ~= "minimal" and style.skin ~= "round" and style.skin ~= "tiles" then style.skin = "framed" end
+        if style.skin ~= "minimal" and style.skin ~= "round" and style.skin ~= "tiles" and style.skin ~= "octagons" then style.skin = "framed" end
         style.opacity = Number(style.opacity, -1, -1, 1)
         if style.opacity < 0 then style.opacity = -1 end
         style.scale = Number(style.scale, 1, 0.25, 2.5)
@@ -61,8 +63,11 @@ function ns.NormalizeCustomization()
         bar.size = Number(bar.size, 0, 0, 64, true)
         if bar.size > 0 then bar.size = math.max(28, bar.size) end
         bar.spacing = Number(bar.spacing, -1, -1, 20)
+        if bar.layout ~= "vertical" and bar.layout ~= "cluster" and bar.layout ~= "radial" then bar.layout = "horizontal" end
+        if bar.border ~= "thin" and bar.border ~= "bold" and bar.border ~= "none" then bar.border = "soft" end
+        if bar.keyPosition ~= "inside" then bar.keyPosition = "outside" end
         bar.columns = Number(bar.columns, 12, 1, 12, true)
-        if bar.shape ~= "square" and bar.shape ~= "triangles" then bar.shape = "inherit" end
+        if bar.shape ~= "square" and bar.shape ~= "triangles" and bar.shape ~= "octagons" then bar.shape = "inherit" end
     end
     db.editor.grid = Number(db.editor.grid, 8, 4, 64, true)
     if not ns.fontFaces[db.fontFace] then db.fontFace = "standard" end
@@ -126,7 +131,13 @@ end
 function ns.SetBarPreference(row, key, value)
     if not ns.Finite(row) or row ~= math.floor(row) or row < 1 or row > 8 then return end
     if key == "shape" then
-        if value ~= "inherit" and value ~= "square" and value ~= "triangles" then return end
+        if value ~= "inherit" and value ~= "square" and value ~= "triangles" and value ~= "octagons" then return end
+    elseif key == "border" then
+        if value ~= "thin" and value ~= "soft" and value ~= "bold" and value ~= "none" then return end
+    elseif key == "keyPosition" then
+        if value ~= "inside" and value ~= "outside" then return end
+    elseif key == "layout" then
+        if value ~= "horizontal" and value ~= "vertical" and value ~= "cluster" and value ~= "radial" then return end
     elseif key == "size" or key == "spacing" or key == "columns" then
         value = tonumber(value)
         if not ns.Finite(value) then return end

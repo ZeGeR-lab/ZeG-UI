@@ -396,6 +396,8 @@ for index, name in ipairs(barNames) do
         button.SpellCastAnimFrame.Fill.CastFill:SetTexture("NativeCastFill")
         button.SpellCastAnimFrame.EndBurst = New("Frame", nil, button.SpellCastAnimFrame)
         button.SpellCastAnimFrame.EndBurst.Flash = button.SpellCastAnimFrame.EndBurst:CreateTexture()
+        button.HoverGlow = New("Frame", nil, button)
+        button.HoverGlow.Art = button.HoverGlow:CreateTexture()
         button.cooldown = New("Cooldown", nil, button)
         button.cooldown:SetHideCountdownNumbers(true)
         button.cooldown:SetDrawEdge(false)
@@ -1205,6 +1207,25 @@ if TEST_MODE == "trackers_native" then
     ns.customize:Hide()
     local frame, item = trackerFixture, trackerFixture.item
     local second = trackerFixture.second
+    ns.db.trackers.styles.essential.arrangement = "vertical"
+    ns.db.trackers.styles.essential.skin = "octagons"
+    ns.ApplyTrackers()
+    local _, _, _, tx1, ty1 = item:GetPoint()
+    local _, _, _, tx2, ty2 = second:GetPoint()
+    assert(tx1 == tx2 and ty2 > ty1, "Tracker vertical arrangement did not apply")
+    local octagon
+    for mask in pairs(item.Icon.masks) do octagon = mask end
+    assert(octagon.texture:find("Octagon.tga",1,true))
+    local beforeTrackerArrangement = mutations
+    combat = true ns.db.trackers.styles.essential.arrangement = "horizontal" ns.ApplyTrackers()
+    assert(mutations == beforeTrackerArrangement)
+    combat = false ns.ApplyTrackers()
+    local _, _, _, hx1, hy1 = item:GetPoint()
+    local _, _, _, hx2, hy2 = second:GetPoint()
+    assert(hx2 > hx1 and hy1 == hy2)
+    ns.db.trackers.styles.essential.arrangement = "native"
+    ns.db.trackers.styles.essential.skin = "framed" ns.ApplyTrackers()
+    assert(({item:GetPoint()})[4] == -30 and ({second:GetPoint()})[4] == 30)
     ns.db.trackers.styles.essential.visibility = "hideCountdown"
     ns.db.trackers.styles.essential.layout = "compactOutOfCombat"
     item.Cooldown:Show() second.Cooldown:Hide()
@@ -1708,14 +1729,15 @@ local function CheckTriangleClicks()
         local state = ns.buttonShapes[button]
         assert(state and state.active and button.icon.masks[state.mask])
         assert(state.mask.texture:find(i % 2 == 1 and "TriangleUp.tga" or "TriangleDown.tga", 1, true))
-        assert(button.HighlightTexture.masks[state.mask] and button.Flash.masks[state.mask])
+        assert(button.Flash.masks[state.mask] and not (button.HighlightTexture.masks and button.HighlightTexture.masks[state.mask]))
         local cast = button.SpellCastAnimFrame.Fill.CastFill
         local mask = state.masked[cast]
         assert(mask and cast.masks[mask] and mask.texture == state.mask.texture, "Nested cast fill was not clipped to triangle")
         assert(cast:GetTexture() == "NativeCastFill", "Native cast animation was replaced")
         local burst = button.SpellCastAnimFrame.EndBurst.Flash
-        assert(state.masked[burst] and burst.masks[state.masked[burst]], "Cast completion flash remained square")
-        assert(button.HighlightTexture:GetTexture() == "NativeHighlightTexture", "Native hover art was replaced")
+        assert(not state.masked[burst], "Completion flair was masked again")
+        assert(not state.masked[button.HoverGlow.Art], "Expensive hover glow masking returned")
+        assert(button.HighlightTexture:GetTexture() == state.mask.texture, "Highlight did not use a cheap pre-shaped texture")
         assert(button.cooldown.swipeTexture == state.mask.texture and button.lossOfControlCooldown.swipeTexture == state.mask.texture)
         assert(button.cooldown.drawEdge == false and button.cooldown.drawBling == false)
         assert(not button.ccuiBackground:IsShown() and state.border:IsShown())
@@ -1906,6 +1928,7 @@ assert(ns.pending and mutations == beforeShapeChange and ns.buttonShapes[button]
     "Combat shape change modified protected geometry")
 combat = false Event("PLAYER_REGEN_ENABLED") Tick()
 assert(not ns.buttonShapes[button].active and next(button.icon.masks) == nil)
+assert(button.HighlightTexture:GetTexture() == "NativeHighlightTexture", "Square highlight was not restored")
 assert(next(button.SpellCastAnimFrame.Fill.CastFill.masks) == nil, "Cast mask did not restore square mode")
 assert(button.ccuiBackground:IsShown() and not ns.buttonShapes[button].border:IsShown())
 assert(button.width == 48 and button.height == 48)

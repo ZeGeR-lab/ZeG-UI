@@ -43,10 +43,14 @@ local function Valid(path, value)
         if #value > 32 or value:find("[%c|]") then return false end
         if allowed[path] then return allowed[path][value] ~= nil end
         if path:match("%.outline$") then return value == "" or value == "OUTLINE" or value == "THICKOUTLINE" end
+        if path:match("^trackers%.styles%.[^.]+%.arrangement$") then return value == "native" or value == "horizontal" or value == "vertical" or value == "cluster" or value == "radial" end
         if path:match("^trackers%.styles%.[^.]+%.layout$") then return value == "fixed" or value == "compactOutOfCombat" end
         if path:match("^trackers%.styles%.[^.]+%.visibility$") then return value == "always" or value == "hideCountdown" or value == "dimCountdown" end
-        if path:match("%.skin$") then return value == "framed" or value == "minimal" or value == "round" or value == "tiles" end
-        if path:match("[Ss]hape$") then return value == "square" or value == "triangles" or value == "inherit" end
+        if path:match("%.skin$") then return value == "framed" or value == "minimal" or value == "round" or value == "tiles" or value == "octagons" end
+        if path:match("^barSettings%.%d+%.border$") then return value == "thin" or value == "soft" or value == "bold" or value == "none" end
+        if path:match("^barSettings%.%d+%.keyPosition$") then return value == "inside" or value == "outside" end
+        if path:match("^barSettings%.%d+%.layout$") then return value == "horizontal" or value == "vertical" or value == "cluster" or value == "radial" end
+        if path:match("[Ss]hape$") then return value == "square" or value == "triangles" or value == "inherit" or (path:match("^barSettings%.%d+%.shape$") and value == "octagons") end
     end
     return true
 end

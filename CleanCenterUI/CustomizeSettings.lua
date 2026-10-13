@@ -158,15 +158,21 @@ local function Bars(page)
         function(v) ns.SetBarPreference(window.bar, "spacing", v) end, -1, 20, 1)
     Number(page, "Buttons per line", -166, function() return Pref().columns end,
         function(v) ns.SetBarPreference(window.bar, "columns", v) end, 1, 12, 1)
-    Choice(page, "Shape", -208, {{"inherit", "Use global shape"}, {"square", "Squares"}, {"triangles", "Alternating triangles"}},
+    Choice(page, "Shape", -208, {{"inherit", "Use global shape"}, {"square", "Squares"}, {"triangles", "Alternating triangles"}, {"octagons", "Octagons"}},
         function() return Pref().shape end, function(v) ns.SetBarPreference(window.bar, "shape", v) end)
-    Button(page, "Reset this bar", 0, -260, 266, function() ns.db.barSettings[window.bar] = ns.Copy(ns.defaults.barSettings[1]) Changed() end)
-    Button(page, "Use on all bars", 284, -260, 266, function()
+    Choice(page, "Layout", -250, {{"horizontal", "Horizontal / wrap"}, {"vertical", "Vertical"}, {"cluster", "Grid cluster"}, {"radial", "Radial wheel"}},
+        function() return Pref().layout end, function(v) ns.SetBarPreference(window.bar, "layout", v) end)
+    Choice(page, "Border", -284, {{"thin","Thin"},{"soft","Soft"},{"bold","Bold"},{"none","None"}},
+        function() return Pref().border end, function(v) ns.SetBarPreference(window.bar,"border",v) end)
+    Choice(page, "Hotkey labels", -318, {{"outside","Below icons"},{"inside","Inside icons"}},
+        function() return Pref().keyPosition end, function(v) ns.SetBarPreference(window.bar,"keyPosition",v) end)
+    Button(page, "Reset this bar", 0, -362, 266, function() ns.db.barSettings[window.bar] = ns.Copy(ns.defaults.barSettings[1]) Changed() end)
+    Button(page, "Use on all bars", 284, -362, 266, function()
         local pref = ns.Copy(Pref()) for i = 1, 8 do ns.db.barSettings[i] = ns.Copy(pref) end Changed()
     end)
-    local summary = Label(page, "", 0, -312)
+    local summary = Label(page, "", 0, -402)
     Refresh(page, function() local m = ns.BarMetrics(window.bar) summary:SetText("12 slots  |  " .. m.columns .. " per line  |  " .. m.lines .. " lines") end)
-    Help(page, "All 12 slots remain available. Choose the number of visible bars in the main CCUI menu.", -351)
+    Help(page, "All 12 spell slots remain clickable. Vertical is one column; cluster wraps up to four columns. Radial is a wheel of separate buttons, not pie-slice hit regions. Move panels in Positions. Inside labels make the background more compact.", -435)
 end
 local function Fonts(page)
     local window = page.window window.fontCategory = "names"
@@ -323,15 +329,19 @@ local function Trackers(page)
         end)
         return button
     end
-    MiniChoice("Skin", 0, -118, {{"framed", "Framed"}, {"minimal", "Minimal"}, {"round", "Round"}, {"tiles", "Tiles"}},
+    MiniChoice("Skin", 0, -118, {{"framed", "Framed"}, {"minimal", "Minimal"}, {"round", "Round"}, {"tiles", "Tiles"}, {"octagons", "Octagons"}},
         function() return Pref().skin end, function(v) Pref().skin = v end)
     local enabled = Button(editor, "", 284, -118, 266, function()
         local key = window.trackerGroup ns.db.trackers.groups[key] = not ns.db.trackers.groups[key] Changed()
     end)
     page.trackerScale = ns.SettingSlider(editor, 0, -158, 550, 0.25, 2.5, 0.01,
         function() return Pref().scale end, function(v) Pref().scale = v end, Changed, "Group scale")
-    Number(editor, "Text size (0 = HUD)", -214, function() return Pref().fontSize end,
-        function(v) Pref().fontSize = v end, 0, 32, 1)
+    MiniChoice("Arrangement", 0, -214, {{"native", "Blizzard"}, {"horizontal", "Horizontal"}, {"vertical", "Vertical"}, {"cluster", "Grid cluster"}, {"radial", "Radial wheel"}},
+        function() return Pref().arrangement end, function(v) Pref().arrangement = v end)
+    local textSize = Button(editor, "", 284, -214, 266, function()
+        Pref().fontSize = Pref().fontSize >= 30 and 0 or Pref().fontSize + 2 Changed()
+    end)
+    Refresh(editor, function() textSize.label:SetText("Text size: " .. (Pref().fontSize == 0 and "HUD" or Pref().fontSize)) end)
     Toggle(editor, "Group background", -252, function() return Pref().background end,
         function(v) Pref().background = v end)
     local opacity = ns.SettingSlider(editor, 0, -292, 550, 0, 1, 0.01,
@@ -353,7 +363,7 @@ local function Trackers(page)
         ns.db.trackers.styles[window.trackerGroup] = ns.Copy(ns.defaults.trackers.styles[window.trackerGroup])
         ns.db.positions["tracker" .. window.trackerGroup] = nil Changed()
     end)
-    Help(editor, "Hide/dim follows the native countdown (including buff/charge timers). Compaction works outside combat only. Spell selection and orientation stay in Blizzard's editor.", -422)
+    Help(editor, "Hide/dim follows the native countdown (including buff/charge timers). Arrangements apply outside combat. Choose Positions or Move group to relocate it. Radial uses separate icons; timer bars use rows/columns.", -422)
     Toggle(manager, "Skin Blizzard trackers", -76, function() return ns.db.trackers.enabled end,
         function(v) ns.db.trackers.enabled = v end)
     Button(manager, "Enable Blizzard tracking", 0, -118, 266, ns.EnableBlizzardTrackers)

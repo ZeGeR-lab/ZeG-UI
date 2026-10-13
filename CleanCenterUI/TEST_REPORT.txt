@@ -1,3 +1,3 @@
-ZeG UI 0.4.12
-All Lua sources compile; all 64 simulated scenarios passed.
-Checks include 1% slider draft isolation, direct tracker scaling without the wizard, central-menu launcher navigation, repeated tooltip Show calls without repeated styling, and prior tracker/compaction/combat/skin/profile/minimap/triangle behavior. Actual hover FPS and visual layout require live WoW testing.
+ZeG UI 0.4.13
+All Lua sources compile; 65 simulated scenarios passed.
+Checks cover tracker horizontal/vertical placement and restoration, octagon masks, combat deferral, all 12 radial hotkey hitboxes without overlap, profile persistence, bold borders, compact inside-key labels, and unrelated hover effects remaining unmasked. Broad recursive animation masking has been removed. Live FPS, native combat reflow and visual review still required.

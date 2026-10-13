@@ -214,3 +214,12 @@ In `/zeg setup`, select Essential or Utility, go to the preview and cycle **Alwa
 `/zeg` or minimap left-click opens the organized settings menu. Choose **Cooldown tracker > Edit groups**, select Essential, Utility, Buff icons or Buff bars, and change its appearance directly. Sliders control scale (25–250%) and background opacity; skin, text, visibility, slot behavior and timer controls are alongside them. Move/reset the selected group from the same panel. Changes save automatically and protected layout changes wait until combat ends.
 **Manager settings** contains enabling, automatic startup, global background and default text controls, plus Blizzard spell selection. **Optional guided setup** remains available but is not required. Overview provides HUD scale and opacity sliders and links to unit-frame, minimap and module settings.
 This version also caches tooltip styling and reduces recurring reflow/skin work to address hover FPS drops. In-game performance is not measured by the simulator.
+
+
+### Layout patterns and octagons (0.4.13)
+**Cooldown tracker > Edit groups**: choose the group, select Octagons under Skin, and choose Arrangement: Blizzard, Horizontal, Vertical, Grid cluster or Radial wheel. Move it with Move group or Positions. Timer bars support rows/columns; radial is reserved for icon groups. Layout changes wait until outside combat; Blizzard may update native aura layouts in combat.
+**Action bars**: select a bar, choose Shape and Layout independently. Vertical is one column; Grid cluster uses up to four columns; Horizontal wraps using Buttons per line. Radial displays all 12 native action slots in a wheel with non-overlapping rectangular click regions. This is not a true pie-slice menu. Octagons create diamond gaps when tiled in a grid.
+This build removes broad animation masking associated with the reported triangle hover regression. Hover art is a pre-shaped texture; the native completion/proc flair is no longer clipped to a triangle. Live FPS confirmation remains necessary.
+
+
+**Action-bar finishing:** select Thin, Soft, Bold or None under Border. Soft is the default for new border preferences and uses a wider blurred stroke. Set Hotkey labels to Inside icons to remove the below-icon label strip and shrink the bar background; Below icons restores the original spacing. These settings are independent per bar and included in profiles.

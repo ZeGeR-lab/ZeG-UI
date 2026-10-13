@@ -8,6 +8,7 @@ ns.trackerGroups = {
     {key = "bars", name = "BuffBarCooldownViewer", label = "Buff bars"},
 }
 local groups, decorations, fonts, artwork = {}, {}, {}, {}
+local itemOrdinal = 0
 local shaped, fills, countdowns, maskCache = {}, {}, {}, {}
 local opacityItems = {}
 function ns.TrackerCountdownVisibilitySupported()
@@ -68,7 +69,7 @@ function ns.CompactTrackerLayout()
     for _, group in ipairs(ns.trackerGroups) do
         local style = ns.db.trackers.styles[group.key]
         local compact = ns.db.enabled and ns.db.trackers.enabled and ns.db.trackers.groups[group.key]
-            and style.visibility == "hideCountdown" and style.layout == "compactOutOfCombat" and not ns.unlocked
+            and style.arrangement == "native" and style.visibility == "hideCountdown" and style.layout == "compactOutOfCombat" and not ns.unlocked
         local slots, readable = {}, true
         for frame, record in pairs(opacityItems) do
             if record.key == group.key then
@@ -104,7 +105,7 @@ function ns.CompactTrackerLayout()
     end
 end
 local media = "Interface\\AddOns\\CleanCenterUI\\Media\\"
-local function ShapeTexture(texture, anchor, round)
+local function ShapeTexture(texture, anchor, shape)
     if not texture or not texture.AddMaskTexture or not texture.GetParent then return end
     local record = shaped[texture]
     if not record then
@@ -126,7 +127,7 @@ local function ShapeTexture(texture, anchor, round)
         for _, mask in ipairs(record.native) do texture:RemoveMaskTexture(mask) end
         texture:AddMaskTexture(record.mask)
     end
-    record.mask:SetTexture(round and media .. "CircleMask.tga" or ns.WHITE, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+    record.mask:SetTexture(shape == "round" and media .. "CircleMask.tga" or shape == "octagons" and media .. "Octagon.tga" or ns.WHITE, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
 end
 local function FlatFill(bar, style)
     if not bar or not bar.GetStatusBarTexture then return end
@@ -213,14 +214,17 @@ local function SkinTree(frame, depth, owner, style, key)
     if frame.Icon and (frame.Cooldown or frame.Bar) then
         local record = decorations[frame]
         if not record then
-            record = {edges = Borders(frame), owner = owner}
+            itemOrdinal = itemOrdinal + 1
+            record = {frame = frame, edges = Borders(frame), owner = owner, ordinal = itemOrdinal, points = {}}
+            for i = 1, frame:GetNumPoints() do record.points[i] = {frame:GetPoint(i)} end
             record.ring = frame:CreateTexture(nil, "OVERLAY", nil, 7)
             local anchor = frame.Bar and frame.Icon or frame
             record.ring:SetAllPoints(anchor) record.ring:SetTexture(media .. "CircleBorder.tga")
             record.tile = frame:CreateTexture(nil, "BACKGROUND", nil, -1) record.tile:SetAllPoints(frame)
             decorations[frame] = record
         end
-        local round, c = style.skin == "round", ns.db.colors.border
+        local round, c = style.skin == "round" or style.skin == "octagons", ns.db.colors.border
+        record.ring:SetTexture(media .. (style.skin == "octagons" and "OctagonBorder.tga" or "CircleBorder.tga"))
         local bordered = ns.db.borders and style.skin ~= "minimal"
         for _, edge in ipairs(record.edges) do
             edge:SetColorTexture(c[1], c[2], c[3], bordered and c[4] or 0)
@@ -232,12 +236,12 @@ local function SkinTree(frame, depth, owner, style, key)
         record.tile:SetShown(style.skin == "tiles")
         local icon = frame.Icon.Icon or frame.Icon
         local anchor = frame.Bar and frame.Icon or frame
-        ShapeTexture(icon, anchor, round)
+        ShapeTexture(icon, anchor, style.skin)
         if frame.Cooldown then
             local cooldown = frame.Cooldown
             if cooldown.GetSwipeTexture then
                 local swipe = cooldown:GetSwipeTexture()
-                if type(swipe) ~= "string" then ShapeTexture(swipe, anchor, round) end
+                if type(swipe) ~= "string" then ShapeTexture(swipe, anchor, style.skin) end
             end
             if cooldown.GetHideCountdownNumbers and cooldown.SetHideCountdownNumbers then
                 local hidden = cooldown:GetHideCountdownNumbers()
@@ -261,6 +265,7 @@ local function NativePoints(frame)
 end
 local function RestoreGroup(frame, record)
     record.panel:Hide()
+    if record.arranged then ns.SetSize(frame, record.width, record.height) record.arranged = nil end
     if record.scaled then ns.SetScale(frame, record.scale) record.scaled = nil end
     if record.moved then
         ns.ClearPoints(frame)
@@ -272,6 +277,11 @@ local function RestoreCosmetics()
     for _, record in pairs(decorations) do
         for _, edge in ipairs(record.edges) do edge:Hide() end
         record.ring:Hide() record.tile:Hide()
+        if record.arranged then
+            ns.ClearPoints(record.frame)
+            for _, point in ipairs(record.points) do ns.SetPoint(record.frame, unpack(point)) end
+            record.arranged = nil
+        end
     end
     for texture, record in pairs(shaped) do
         if Usable(texture) then
@@ -309,11 +319,51 @@ function ns.TrackerMoverVisible(key)
     end
     return false
 end
+local function ArrangeTracker(viewer, style, groupRecord)
+    if style.arrangement == "native" then return end
+    local items, maxWidth, maxHeight = {}, 0, 0
+    for frame, record in pairs(decorations) do
+        if record.owner == viewer then
+            local shown = frame:IsShown()
+            if not ns.Readable(shown) then return end
+            if shown then
+                local width, height = frame:GetWidth(), frame:GetHeight()
+                if not ns.Finite(width) or not ns.Finite(height) or width <= 0 or height <= 0 then return end
+                maxWidth, maxHeight = math.max(maxWidth,width), math.max(maxHeight,height)
+                items[#items+1] = {frame=frame, record=record}
+            end
+        end
+    end
+    if #items == 0 then return end
+    table.sort(items, function(a,b) return a.record.ordinal < b.record.ordinal end)
+    local spacing, count = 6, #items
+    local columns = style.arrangement == "vertical" and 1 or style.arrangement == "cluster" and math.min(4,count) or count
+    local rows = math.ceil(count / columns)
+    local width, height = columns*(maxWidth+spacing)-spacing+8, rows*(maxHeight+spacing)-spacing+8
+    local radius
+    if style.arrangement == "radial" and count > 1 then
+        radius = (math.max(maxWidth,maxHeight)+spacing)*math.sqrt(2)/(2*math.sin(math.pi/count))
+        width, height = 2*radius+maxWidth+8, 2*radius+maxHeight+8
+    end
+    ns.SetSize(viewer,width,height) groupRecord.arranged = true
+    for i,item in ipairs(items) do
+        local x,y = 4+((i-1)%columns)*(maxWidth+spacing), 4+math.floor((i-1)/columns)*(maxHeight+spacing)
+        if radius then
+            local angle = math.pi/2-(i-1)*2*math.pi/count
+            x,y = 4+radius+radius*math.cos(angle), 4+radius+radius*math.sin(angle)
+        end
+        ns.ClearPoints(item.frame) ns.SetPoint(item.frame,"BOTTOMLEFT",viewer,"BOTTOMLEFT",x,y)
+        item.record.arranged = true
+    end
+end
 function ns.ApplyTrackers()
     if not ns.db or InCombatLockdown() or ns.blizzardEditing then return end
     if not ns.db.enabled or not ns.db.trackers.enabled then ns.RestoreTrackers() return end
     if ns.db.trackers.autoEnable and Available() and not Enabled() then ns.EnableBlizzardTrackers() end
     RestoreCosmetics()
+    for frame, record in pairs(groups) do
+        if record.arranged then ns.SetSize(frame, record.width, record.height) record.arranged = nil end
+    end
     for _, group in ipairs(ns.trackerGroups) do
         local frame, key = _G[group.name], "tracker" .. group.key
         if Usable(frame) then
@@ -325,7 +375,7 @@ function ns.ApplyTrackers()
                     local level = frame:GetFrameLevel()
                     if ns.Finite(level) then panel:SetFrameLevel(math.max(0, level - 1)) end
                     ns.Panel(panel, ns.db.opacity)
-                    record = {panel = panel, points = NativePoints(frame), scale = frame:GetScale()} groups[frame] = record
+                    record = {panel = panel, points = NativePoints(frame), scale = frame:GetScale(), width = frame:GetWidth(), height = frame:GetHeight()} groups[frame] = record
                     ns.AddMover(frame, key, "Tracker: " .. group.label)
                 end
                 local style = ns.db.trackers.styles[group.key]
@@ -342,6 +392,7 @@ function ns.ApplyTrackers()
                 ns.Panel(record.panel, opacity)
                 record.panel:SetShown(ns.db.trackers.container and style.background and style.visibility == "always")
                 SkinTree(frame, 4, frame, style, group.key)
+                if ns.Finite(record.width) and ns.Finite(record.height) then ArrangeTracker(frame,style,record) end
             elseif record then RestoreGroup(frame, record) end
         end
     end

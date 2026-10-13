@@ -1,3 +1,13 @@
+## 0.4.13 — Tracker and action-bar arrangements, hover-mask rollback
+
+- Tracker groups: native, horizontal, vertical, grid cluster and radial arrangements; octagonal icon skin. Move groups through existing movers. Timer-bar viewers use rows/columns (radial converts to vertical).
+- Hotkey bars: horizontal/wrapped, vertical, grid-cluster and radial-wheel layouts with square, triangle or octagonal buttons.
+- Thin, Soft, Bold and None borders; soft strokes are precomputed textures, not extra animated masks.
+- Hotkey labels can sit inside or below icons. Inside labels shrink row height and bar background padding.
+- True pie-slice secure click regions are not implemented; wheels use separate non-overlapping native buttons. Octagons leave diamond gaps in grids.
+- Removes recursive descendant animation masking introduced in 0.4.7. Hover highlighting uses an already-shaped alpha texture instead of an additional mask. Only the cast-fill layer keeps a mask; completion/proc flair stays native.
+- Arrangements apply outside combat and preserve native parents, clicks, spell slots, tooltip handlers and tracking.
+
 ## 0.4.12 — Direct tracker editor, sliders and hover performance
 
 - /zeg and minimap left-click now open a central settings menu with an Overview and organized sidebar.

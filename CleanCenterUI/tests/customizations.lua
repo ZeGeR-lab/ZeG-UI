@@ -29,7 +29,47 @@ local function AuraPixels(frame)
     end
     error("Missing native aura icon")
 end
-if mode == "custom_profiles" then
+if mode == "custom_patterns" then
+    local bar = MainActionBar
+    local click = bar.actionButtons[1]:GetScript("OnClick")
+    ns.SetBarPreference(1, "layout", "vertical") h.tick()
+    local m = ns.BarMetrics(1)
+    assert(m.columns == 1 and m.lines == 12)
+    local tall = m.rowHeight
+    ns.SetBarPreference(1,"keyPosition","inside")
+    ns.SetBarPreference(1,"border","bold") h.tick()
+    assert(ns.BarMetrics(1).rowHeight < tall)
+    assert(bar.actionButtons[1].HotKey:GetPoint() == "TOPRIGHT")
+    assert(ns.actionBorderArt[bar.actionButtons[1]]:GetTexture():find("SquareBorderBold.tga",1,true))
+    local _, _, _, x1, y1 = bar.actionButtons[1]:GetPoint()
+    local _, _, _, x2, y2 = bar.actionButtons[2]:GetPoint()
+    assert(x1 == x2 and y2 > y1)
+    ns.SetBarPreference(1, "shape", "octagons")
+    ns.SetBarPreference(1, "layout", "cluster") h.tick()
+    assert(ns.BarMetrics(1).columns == 4)
+    assert(ns.buttonShapes[bar.actionButtons[1]].mask.texture:find("Octagon.tga", 1, true))
+    ns.SetBarPreference(1, "layout", "radial") h.tick()
+    m = ns.BarMetrics(1) assert(m.radial)
+    for i=1,12 do
+        local ax, ay = ns.BarSlot(m, i)
+        for j=i+1,12 do
+            local bx, by = ns.BarSlot(m, j)
+            assert(math.abs(ax-bx) >= m.buttonWidth or math.abs(ay-by) >= m.buttonHeight,
+                "Radial secure click rectangles overlap")
+        end
+    end
+    assert(bar.actionButtons[1]:GetScript("OnClick") == click)
+    assert(ns.SaveProfile("Patterns"))
+    local encoded = assert(ns.ExportProfile("Patterns"))
+    assert(encoded:find("radial",1,true) and encoded:find("octagons",1,true))
+    h.fight(true) local before = h.mutations()
+    ns.SetBarPreference(1,"layout","horizontal") h.tick()
+    assert(h.mutations() == before)
+    h.fight(false) h.tick()
+    assert(not ns.BarMetrics(1).radial)
+    ns.SetBarPreference(1,"shape","square") h.tick()
+    assert(not ns.buttonShapes[bar.actionButtons[1]].active)
+elseif mode == "custom_profiles" then
     ns.db.unitStyles.player.classColor = false ns.db.unitStyles.player.portrait = false
     ns.db.unitStyles.player.healthColor = {0.17, 0.41, 0.83, 0.7}
     ns.db.fontSettings.health.size = 18 ns.db.fade.enabled = false

@@ -31,3 +31,30 @@ for name, alpha in (("CircleMask", outer), ("CircleBorder", ImageChops.subtract(
     texture = Image.new("RGBA", (size, size), (255,255,255,0))
     texture.putalpha(alpha.resize((size,size), Image.Resampling.LANCZOS))
     texture.save(media / (name + ".tga"), compression=None)
+
+# Octagons leave diamond gaps when arranged in a square grid.
+outer = polygon([(75,2),(181,2),(254,75),(254,181),(181,254),(75,254),(2,181),(2,75)])
+inner = polygon([(77,6),(179,6),(250,77),(250,179),(179,250),(77,250),(6,179),(6,77)])
+for name, alpha in (("Octagon", outer), ("OctagonBorder", ImageChops.subtract(outer, inner))):
+    texture = Image.new("RGBA", (size,size), (255,255,255,0))
+    texture.putalpha(alpha.resize((size,size), Image.Resampling.LANCZOS))
+    texture.save(media / (name + ".tga"), compression=None)
+
+# Soft, wider strokes are baked into alpha textures; no extra runtime masks.
+from PIL import ImageFilter
+for asset in ("TriangleUp", "TriangleDown", "Octagon"):
+    mask = Image.open(media / (asset + ".tga")).getchannel("A")
+    for suffix, erosion, blur in (("Soft",21,2.5),("Bold",25,0)):
+        alpha = ImageChops.subtract(mask, mask.filter(ImageFilter.MinFilter(erosion)))
+        if blur: alpha = alpha.filter(ImageFilter.GaussianBlur(blur))
+        texture = Image.new("RGBA",(128,128),(255,255,255,0))
+        texture.putalpha(alpha.resize((128,128),Image.Resampling.LANCZOS))
+        texture.save(media / (asset + "Border" + suffix + ".tga"), compression=None)
+mask = Image.new("L",(256,256))
+ImageDraw.Draw(mask).rounded_rectangle((2,2,254,254),radius=12,fill=255)
+for suffix,erosion,blur in (("Thin",9,0),("Soft",21,2.5),("Bold",25,0)):
+    alpha = ImageChops.subtract(mask,mask.filter(ImageFilter.MinFilter(erosion)))
+    if blur: alpha=alpha.filter(ImageFilter.GaussianBlur(blur))
+    texture=Image.new("RGBA",(128,128),(255,255,255,0))
+    texture.putalpha(alpha.resize((128,128),Image.Resampling.LANCZOS))
+    texture.save(media / ("SquareBorder" + suffix + ".tga"),compression=None)

@@ -42,7 +42,7 @@ modes += ("custom_profiles", "custom_profile_validation", "custom_profile_combat
 modes += ("meters_native", "meters_colors", "meters_secret", "meters_restore", "meters_combat", "meters_profiles",
           "meters_ui", "meters_late", "meters_missing", "meters_off", "meters_forbidden")
 modes += ("custom_aura_sizes", "custom_aura_sizes_scaled")
-modes += ("trackers_native",)
+modes += ("trackers_native", "custom_patterns")
 selected = sys.argv[1:] or modes
 if set(selected) - set(modes):
     raise SystemExit("Unknown simulated scenario: " + ", ".join(sorted(set(selected) - set(modes))))

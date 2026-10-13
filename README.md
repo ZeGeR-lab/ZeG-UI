@@ -1,6 +1,6 @@
 # ZeG UI
 
-Full WoW Forever UI. Current test build: **0.4.12**.
+Full WoW Forever UI. Current test build: **0.4.13**.
 
 ## Installation
 
@@ -31,3 +31,12 @@ Countdown hiding offers Fixed slots or Compact outside combat. Compaction closes
 `/zeg` opens the central menu. Choose **Cooldown tracker > Edit groups** to change group skins, 25–250% scale sliders, text, opacity, timers, hiding and slot options without a setup wizard. **Manager settings** contains enabling and Blizzard spell-selection access.
 
 0.4.12 also caches tooltip styling and reduces repeated skin/reflow work to address hover FPS drops. All 64 simulated scenarios pass; live-client FPS validation remains required.
+
+## Layouts and finishing
+
+- **Cooldown tracker > Edit groups:** octagonal icon skins and native/horizontal/vertical/grid-cluster/radial arrangements. Use Move group or Positions. Timer bars use rows/columns.
+- **Action bars:** choose each bar's shape and arrangement, Thin/Soft/Bold/None borders, and inside/below hotkey labels. Inside labels shrink the background.
+- Radial wheels use separate buttons, not true pie-slice secure click regions. Layout changes wait until outside combat.
+- Removed recursive animation masks associated with triangle hover FPS loss; highlights now use pre-shaped textures. Only cast-fill masking remains; completion/proc flair stays native.
+
+65 simulated scenarios pass. In-game FPS and native combat reflow still need verification.

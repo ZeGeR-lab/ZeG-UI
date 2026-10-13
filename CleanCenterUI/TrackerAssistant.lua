@@ -71,9 +71,10 @@ function ns.RefreshTrackerAssistant()
     for i, item in ipairs(w.previewItems) do
         item:ClearAllPoints()
         item:SetPoint("TOPLEFT", w.preview, "TOPLEFT", w.group == "bars" and 10 or 10 + (i-1)*54, w.group == "bars" and -10 - (i-1)*50 or -10)
-        item.previewMask:SetTexture(w.draft.skin == "round" and "Interface\\AddOns\\CleanCenterUI\\Media\\CircleMask.tga" or ns.WHITE)
-        item.ring:SetShown(w.draft.skin == "round")
-        ns.SetBorderColor(item, unpack((w.draft.skin == "minimal" or w.draft.skin == "round") and {0,0,0,0} or ns.db.colors.border))
+        item.previewMask:SetTexture(w.draft.skin == "round" and "Interface\\AddOns\\CleanCenterUI\\Media\\CircleMask.tga" or w.draft.skin == "octagons" and "Interface\\AddOns\\CleanCenterUI\\Media\\Octagon.tga" or ns.WHITE)
+        item.ring:SetTexture("Interface\\AddOns\\CleanCenterUI\\Media\\" .. (w.draft.skin == "octagons" and "OctagonBorder.tga" or "CircleBorder.tga"))
+        item.ring:SetShown(w.draft.skin == "round" or w.draft.skin == "octagons")
+        ns.SetBorderColor(item, unpack((w.draft.skin == "minimal" or w.draft.skin == "round" or w.draft.skin == "octagons") and {0,0,0,0} or ns.db.colors.border))
         local alpha = (w.group == "essential" or w.group == "utility") and w.draft.visibility ~= "always" and i == 1
             and (w.draft.visibility == "hideCountdown" and 0 or 0.2) or 1
         item:SetAlpha(alpha)
@@ -126,7 +127,7 @@ function ns.OpenTrackerAssistant()
             w.saved = false w.draft.fontSize = w.draft.fontSize >= 24 and 10 or w.draft.fontSize + 2 ns.RefreshTrackerAssistant()
         end)
         w.preset = Button(style, "", 0, -78, 270, function()
-            local choices = {"framed", "minimal", "round", "tiles"} local index = 0
+            local choices = {"framed", "minimal", "round", "tiles", "octagons"} local index = 0
             for i, value in ipairs(choices) do if value == w.draft.skin then index = i end end
             w.saved = false w.draft.skin = choices[index % #choices + 1] ns.RefreshTrackerAssistant()
         end)
