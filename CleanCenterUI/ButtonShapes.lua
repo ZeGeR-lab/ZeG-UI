@@ -28,6 +28,22 @@ local function MaskRegion(state, region)
     end
 end
 
+local function ShapeEffect(state, region, fill)
+    if not region or not region.SetTexture then return end
+    state.effects = state.effects or {}
+    if not state.effects[region] then
+        local original = {texture = region:GetTexture(), points = {},
+            coords = region.GetTexCoord and {region:GetTexCoord()} or nil}
+        local atlas = region.GetAtlas and region:GetAtlas()
+        original.atlas = ns.Readable(atlas) and atlas or nil
+        for i = 1, region:GetNumPoints() do original.points[i] = {region:GetPoint(i)} end
+        state.effects[region] = original
+    end
+    region:SetTexture(fill)
+    if region.SetTexCoord then region:SetTexCoord(0, 1, 0, 1) end
+    region:ClearAllPoints() region:SetAllPoints(state.button)
+end
+
 local function StyleHighlight(state, button, fill)
     local region = button.HighlightTexture or (button.GetHighlightTexture and button:GetHighlightTexture())
     if not region or not region.SetTexture then return end
@@ -62,6 +78,12 @@ function ns.ShapeButton(button, icon, index, metrics)
             for _, point in ipairs(h.points) do h.region:SetPoint(unpack(point)) end
             if h.coords then h.region:SetTexCoord(unpack(h.coords)) end
             if h.color then h.region:SetVertexColor(unpack(h.color)) end
+        end
+        for region, original in pairs(state.effects or {}) do
+            if original.atlas and region.SetAtlas then region:SetAtlas(original.atlas) else region:SetTexture(original.texture) end
+            if original.coords then region:SetTexCoord(unpack(original.coords)) end
+            region:ClearAllPoints()
+            for _, point in ipairs(original.points) do region:SetPoint(unpack(point)) end
         end
         state.panel:Hide()
         state.border:Hide()
@@ -122,11 +144,11 @@ function ns.ShapeButton(button, icon, index, metrics)
     state.border:Show()
     button.ccuiBackground:Hide()
     MaskRegion(state, icon)
-    -- Clip native hover, press, checked, and flash art without changing its
-    -- texture, event handler, visibility, action slot, or animation state.
+    -- Animated art uses baked alpha instead of GPU masks. Native handlers,
+    -- visibility and animation timing remain owned by Blizzard.
     for _, field in ipairs({"PushedTexture", "CheckedTexture",
         "Flash", "SpellHighlightTexture", "NewActionTexture"}) do
-        MaskRegion(state, button[field])
+        ShapeEffect(state, button[field], fill)
     end
     for _, field in ipairs({"cooldown", "chargeCooldown", "lossOfControlCooldown"}) do
         local cooldown = button[field] or (field == "cooldown" and button.Cooldown)
@@ -144,9 +166,9 @@ function ns.ShapeButton(button, icon, index, metrics)
     end
     StyleHighlight(state, button, fill)
     -- Do not traverse/mask proc glows, hover effects or all descendant textures.
-    -- Only the actual cast fill needs clipping; completion flair stays native.
+    -- The cast fill uses the same baked shape; completion flair stays native.
     local cast = button.SpellCastAnimFrame or button.CastingAnimFrame
-    if cast and cast.Fill then MaskRegion(state, cast.Fill.CastFill) end
+    if cast and cast.Fill then ShapeEffect(state, cast.Fill.CastFill, fill) end
     -- WoW buttons have rectangular hit regions. Give each overlapping frame
     -- a disjoint center column, leaving a one-pixel gap between click regions.
     -- Secure native buttons still receive clicks and item/spell drag operations.

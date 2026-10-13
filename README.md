@@ -48,3 +48,7 @@ Main settings and setup now use smaller, scrollable windows with fixed Unlock/Lo
 ### 0.4.15
 
 Action bars now support individual button positioning while retaining bar membership, fitted shape highlights, and ordinary column wrapping without radial presets. Tracker groups retain radial layouts with a 25–250% radius slider. Open `/zeg` → Action bars → Move individual buttons, then unlock frames.
+
+### 0.4.16
+
+Performance update removes masks from animated button effects, stops full HUD rebuilds on pet ability updates, and coalesces pending layout notifications. Native ability handlers and timers are retained.

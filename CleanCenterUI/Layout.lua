@@ -293,7 +293,8 @@ local function Bars()
         end
         ns.Hook(bar, "SetPoint", ns.QueueLayout)
         ns.Hook(bar, "UpdateGridLayout", ns.QueueLayout)
-        ns.Hook(bar, "Update", ns.QueueLayout)
+        -- Pet ability updates must not rebuild the entire HUD.
+        -- Geometry changes are covered by UpdateGridLayout and SetPoint.
     end
 end
 

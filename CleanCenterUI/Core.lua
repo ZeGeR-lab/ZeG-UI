@@ -313,7 +313,7 @@ function ns.RecordNativePosition(frame, point, relativePoint, x, y)
 end
 
 function ns.QueueLayout()
-    if not ns.db or ns.applying or ns.restoring then return end
+    if not ns.db or ns.applying or ns.restoring or ns.pending then return end
     if ns.db.enabled then ns.pending = true end
     if ns.RefreshOptions then ns.RefreshOptions() end
     if ns.RefreshAppearance then ns.RefreshAppearance() end

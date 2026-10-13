@@ -1740,11 +1740,11 @@ local function CheckTriangleClicks()
         local state = ns.buttonShapes[button]
         assert(state and state.active and button.icon.masks[state.mask])
         assert(state.mask.texture:find(i % 2 == 1 and "TriangleUp.tga" or "TriangleDown.tga", 1, true))
-        assert(button.Flash.masks[state.mask] and not (button.HighlightTexture.masks and button.HighlightTexture.masks[state.mask]))
+        assert(not state.masked[button.Flash] and not state.masked[button.HighlightTexture])
         local cast = button.SpellCastAnimFrame.Fill.CastFill
         local mask = state.masked[cast]
-        assert(mask and cast.masks[mask] and mask.texture == state.mask.texture, "Nested cast fill was not clipped to triangle")
-        assert(cast:GetTexture() == "NativeCastFill", "Native cast animation was replaced")
+        assert(not mask and next(cast.masks or {}) == nil, "Animated cast fill still uses a mask")
+        assert(cast:GetTexture() == state.mask.texture and cast.allPoints == button, "Cast fill does not fit its shape")
         local burst = button.SpellCastAnimFrame.EndBurst.Flash
         assert(not state.masked[burst], "Completion flair was masked again")
         assert(not state.masked[button.HoverGlow.Art], "Expensive hover glow masking returned")
@@ -1940,7 +1940,7 @@ assert(ns.pending and mutations == beforeShapeChange and ns.buttonShapes[button]
 combat = false Event("PLAYER_REGEN_ENABLED") Tick()
 assert(not ns.buttonShapes[button].active and next(button.icon.masks) == nil)
 assert(button.HighlightTexture:GetTexture() == "NativeHighlightTexture", "Square highlight was not restored")
-assert(next(button.SpellCastAnimFrame.Fill.CastFill.masks) == nil, "Cast mask did not restore square mode")
+assert(next(button.SpellCastAnimFrame.Fill.CastFill.masks or {}) == nil, "Cast mask did not restore square mode")
 assert(button.ccuiBackground:IsShown() and not ns.buttonShapes[button].border:IsShown())
 assert(button.width == 48 and button.height == 48)
 assert(button.hitInsets[1] == 0 and button.hitInsets[2] == 0)

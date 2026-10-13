@@ -1,3 +1,9 @@
+## 0.4.16 — Reduce ability and hover rendering work
+
+- Remove masks from animated pressed, checked, flash, proc-overlay and cast-fill textures. Use baked alpha shapes with native timing and restore their original artwork for square buttons.
+- Stop pet ability updates from rebuilding the full HUD.
+- Coalesce repeated layout notifications before refreshing configuration menus.
+
 ## 0.4.15 — Shape highlights and individual button placement
 
 - Fit shaped hover artwork to the button bounds without extra hover mask passes.

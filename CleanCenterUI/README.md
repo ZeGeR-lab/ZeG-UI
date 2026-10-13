@@ -235,3 +235,7 @@ The minimap launcher is smaller and independent of map scale.
 Open `/zeg`, select **Action bars**, choose a bar and enable **Move individual buttons**. Use the always-visible **Unlock frames** button to drag numbered slot handles outside combat. Lock frames to cast normally. Each button remains part of its original bar; moving that bar preserves the offsets. Switch individual placement off to return to its grid, or reset the bar to clear offsets. Buttons per line controls vertical and wrapped arrangements; action bars no longer offer preset wheels or clusters.
 
 In **Trackers → Edit groups**, choose **Radial wheel** and adjust **Radial radius** from 25% to 250%. Small values can overlap icons. Timer-bar groups continue to use rows rather than wheels.
+
+### Ability rendering performance (0.4.16)
+
+Animated action-button effects now use shaped alpha textures without extra mask passes. The icon keeps its static shape mask. Pet action updates no longer request a full UI layout, and duplicate pending layout notifications are coalesced. Native animations, spell handlers and cooldown timing remain in control.
