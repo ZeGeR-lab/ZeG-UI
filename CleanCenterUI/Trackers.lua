@@ -342,7 +342,7 @@ local function ArrangeTracker(viewer, style, groupRecord)
     local width, height = columns*(maxWidth+spacing)-spacing+8, rows*(maxHeight+spacing)-spacing+8
     local radius
     if style.arrangement == "radial" and count > 1 then
-        radius = (math.max(maxWidth,maxHeight)+spacing)*math.sqrt(2)/(2*math.sin(math.pi/count))
+        radius = (math.max(maxWidth,maxHeight)+spacing)*math.sqrt(2)/(2*math.sin(math.pi/count)) * style.radialRadius
         width, height = 2*radius+maxWidth+8, 2*radius+maxHeight+8
     end
     ns.SetSize(viewer,width,height) groupRecord.arranged = true

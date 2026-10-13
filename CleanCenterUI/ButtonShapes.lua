@@ -35,9 +35,13 @@ local function StyleHighlight(state, button, fill)
         local atlas = region.GetAtlas and region:GetAtlas()
         state.highlight = {region = region, texture = region:GetTexture(),
             atlas = ns.Readable(atlas) and atlas or nil,
+            points = {},
             coords = region.GetTexCoord and {region:GetTexCoord()} or nil,
             color = region.GetVertexColor and {region:GetVertexColor()} or nil}
+        for i = 1, region:GetNumPoints() do state.highlight.points[i] = {region:GetPoint(i)} end
     end
+    region:ClearAllPoints()
+    region:SetAllPoints(button)
     -- An already-shaped alpha texture avoids an extra mask render pass every
     -- time the mouse activates the native highlight animation.
     region:SetTexture(fill)
@@ -54,6 +58,8 @@ function ns.ShapeButton(button, icon, index, metrics)
         if state.highlight then
             local h = state.highlight
             if h.atlas and h.region.SetAtlas then h.region:SetAtlas(h.atlas) else h.region:SetTexture(h.texture) end
+            h.region:ClearAllPoints()
+            for _, point in ipairs(h.points) do h.region:SetPoint(unpack(point)) end
             if h.coords then h.region:SetTexCoord(unpack(h.coords)) end
             if h.color then h.region:SetVertexColor(unpack(h.color)) end
         end

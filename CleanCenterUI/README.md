@@ -229,3 +229,9 @@ This build removes broad animation masking associated with the reported triangle
 `/zeg` opens a smaller scrollable menu. The current section is marked with an accent stripe and breadcrumb. Unlock/Lock frames remains in the fixed header; Snap can also be toggled there. The setup wizard uses a shorter scrollable body, with preview scaling anchored to its own holder to avoid overlapping controls.
 On first use of this version, snapping and dense grid guides are disabled. Re-enable them in Positions if wanted. Optional snapping only nudges a coordinate within two units of a grid line; hold Alt when dropping a panel for exact free placement. Existing saved positions are kept.
 The minimap launcher is smaller and independent of map scale.
+
+### Button placement and tracker radius (0.4.15)
+
+Open `/zeg`, select **Action bars**, choose a bar and enable **Move individual buttons**. Use the always-visible **Unlock frames** button to drag numbered slot handles outside combat. Lock frames to cast normally. Each button remains part of its original bar; moving that bar preserves the offsets. Switch individual placement off to return to its grid, or reset the bar to clear offsets. Buttons per line controls vertical and wrapped arrangements; action bars no longer offer preset wheels or clusters.
+
+In **Trackers → Edit groups**, choose **Radial wheel** and adjust **Radial radius** from 25% to 250%. Small values can overlap icons. Timer-bar groups continue to use rows rather than wheels.

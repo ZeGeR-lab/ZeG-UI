@@ -79,16 +79,8 @@ function ns.BarMetrics(row)
     local height = triangle and math.floor(size * math.sqrt(3) / 2 + 0.5) or size
     local spacing = pref.spacing >= 0 and pref.spacing or (triangle and 2 or ns.db.gap)
     local pitch = (triangle and size / 2 or size) + spacing
-    local columns = pref.layout == "vertical" and 1 or pref.layout == "cluster" and math.min(4, pref.columns) or pref.columns
+    local columns = pref.columns
     local lines = math.ceil(12 / columns)
-    if pref.layout == "radial" then
-        local radius = 2.8 * (size + spacing + 10)
-        local extent = 2 * radius + size
-        return {width = extent, rowHeight = extent + labelHeight, rowStep = extent + labelHeight + ns.db.gap,
-            buttonWidth = size, buttonHeight = height, pitch = size + spacing,
-            lineStep = height + labelHeight + spacing, keyInside = keyInside, borderStyle = pref.border, columns = 12, lines = 1,
-            triangle = triangle, shaped = triangle or shape == "octagons", shape = shape, radial = true, radius = radius}
-    end
     local rowHeight = lines * (height + labelHeight) + (lines - 1) * spacing
     return {width = size + (columns - 1) * pitch, buttonWidth = size, buttonHeight = height,
         pitch = pitch, rowHeight = rowHeight, rowStep = rowHeight + ns.db.gap,
@@ -96,10 +88,6 @@ function ns.BarMetrics(row)
 end
 
 function ns.BarSlot(metrics, index)
-    if metrics.radial then
-        local angle = math.pi / 2 - (index - 1) * 2 * math.pi / 12
-        return metrics.radius + metrics.radius * math.cos(angle), (metrics.keyInside and 2 or 18) + metrics.radius + metrics.radius * math.sin(angle)
-    end
     return ((index - 1) % metrics.columns) * metrics.pitch, (metrics.keyInside and 2 or 18) + math.floor((index - 1) / metrics.columns) * metrics.lineStep
 end
 
@@ -401,6 +389,7 @@ function ns.RefreshMovers()
         ns.SetBorderColor(mover, unpack(ns.db.colors.accent))
     end
     if ns.RefreshLockControls then ns.RefreshLockControls() end
+    if ns.RefreshButtonEditors then ns.RefreshButtonEditors() end
     if ns.RefreshBarEditors then ns.RefreshBarEditors() end
     if ns.RefreshGuides then ns.RefreshGuides() end
 end
@@ -557,6 +546,7 @@ eventFrame:SetScript("OnEvent", function(_, event)
             if mover.dragging then mover.target:StopMovingOrSizing() mover.dragging = nil end
             mover:Hide()
         end
+        if ns.RefreshButtonEditors then ns.RefreshButtonEditors() end
         if ns.RefreshBarEditors then ns.RefreshBarEditors() end
         if ns.RefreshAppearance then ns.RefreshAppearance() end
         if ns.guides then ns.guides:Hide() end

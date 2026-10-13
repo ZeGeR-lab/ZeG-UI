@@ -1229,6 +1229,11 @@ if TEST_MODE == "trackers_native" then
     local _, _, _, hx1, hy1 = item:GetPoint()
     local _, _, _, hx2, hy2 = second:GetPoint()
     assert(hx2 > hx1 and hy1 == hy2)
+    ns.db.trackers.styles.essential.arrangement = "radial"
+    ns.db.trackers.styles.essential.radialRadius = 0.5 ns.ApplyTrackers()
+    local tightWidth = frame:GetWidth()
+    ns.db.trackers.styles.essential.radialRadius = 2 ns.ApplyTrackers()
+    assert(frame:GetWidth() > tightWidth, "Radial radius does not widen tracker group")
     ns.db.trackers.styles.essential.arrangement = "native"
     ns.db.trackers.styles.essential.skin = "framed" ns.ApplyTrackers()
     assert(({item:GetPoint()})[4] == -30 and ({second:GetPoint()})[4] == 30)

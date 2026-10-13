@@ -1,3 +1,11 @@
+## 0.4.15 — Shape highlights and individual button placement
+
+- Fit shaped hover artwork to the button bounds without extra hover mask passes.
+- Remove action bar arrangement presets; buttons per line controls ordinary wrapping.
+- Add per-bar individual positioning with unlocked drag handles and saved slot offsets. Whole-bar movement keeps the offsets; switching off restores the grid.
+- Keep radial tracker groups and add a 25–250% radius slider.
+- Preserve native action handlers and defer protected layout changes until combat ends.
+
 ## 0.4.14 — Compact menus, clear navigation and free placement
 
 - Main settings and tracker setup have shorter windows and scrollable content; header/footer controls stay fixed.

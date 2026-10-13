@@ -44,3 +44,7 @@ Countdown hiding offers Fixed slots or Compact outside combat. Compaction closes
 ## Compact menus and placement
 
 Main settings and setup now use smaller, scrollable windows with fixed Unlock/Lock controls and a clear current-section indicator. Snapping and grid guides start off; optional snap only attracts within two units of a grid line, and Alt bypasses it. The minimap launcher is smaller. Existing positions are kept.
+
+### 0.4.15
+
+Action bars now support individual button positioning while retaining bar membership, fitted shape highlights, and ordinary column wrapping without radial presets. Tracker groups retain radial layouts with a 25–250% radius slider. Open `/zeg` → Action bars → Move individual buttons, then unlock frames.

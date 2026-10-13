@@ -101,6 +101,45 @@ function ns.SkinActionButton(button, index, metrics)
     ns.Hook(button, "UpdateHotkeys", ns.QueueLayout)
 end
 
+ns.buttonEditors = {}
+function ns.RefreshButtonEditors()
+    for _, entry in pairs(ns.buttonEditors) do
+        if not ns.unlocked and entry.dragging then entry.frame:StopMovingOrSizing() entry.dragging = nil end
+        entry.frame:SetShown(ns.unlocked and ns.db.enabled and entry.row <= ns.db.rows and ns.db.barSettings[entry.row].individual and entry.bar:IsShown())
+    end
+end
+local function ButtonEditor(button, anchor, bar, row, index, x, y, width, height)
+    local entry = ns.buttonEditors[button]
+    if not entry then
+        local frame = CreateFrame("Frame", nil, anchor)
+        entry = {frame = frame, row = row, bar = bar}
+        ns.buttonEditors[button] = entry
+        frame:SetFrameStrata("DIALOG") frame:SetFrameLevel(100)
+        frame:EnableMouse(true) frame:RegisterForDrag("LeftButton") frame:SetMovable(true)
+        ns.Panel(frame, 0.5)
+        local label = ns.Font(frame, 12, "CENTER") label:SetPoint("CENTER") label:SetText(tostring(index))
+        frame:SetScript("OnDragStart", function()
+            if InCombatLockdown() then return end
+            frame:StartMoving() entry.dragging = true
+        end)
+        frame:SetScript("OnDragStop", function()
+            if not entry.dragging then return end
+            entry.dragging = nil frame:StopMovingOrSizing()
+            if InCombatLockdown() then ns.QueueLayout() return end
+            local fx, fy = frame:GetCenter()
+            local bx, by = button:GetCenter()
+            if ns.Finite(fx) and ns.Finite(fy) and ns.Finite(bx) and ns.Finite(by) then
+                local offset = ns.db.barSettings[row].offsets[index]
+                local factor = frame:GetEffectiveScale() / anchor:GetEffectiveScale()
+                offset.x = ns.Clamp(offset.x + (fx-bx)*factor, -2000, 2000)
+                offset.y = ns.Clamp(offset.y + (fy-by)*factor, -2000, 2000)
+            end
+            ns.QueueLayout()
+        end)
+    end
+    entry.frame:ClearAllPoints() entry.frame:SetSize(width, height)
+    entry.frame:SetPoint("BOTTOMLEFT", anchor, "BOTTOMLEFT", x, y)
+end
 local function PlaceBar(bar, row)
     -- Keep the full stock bar and its button containers together. Blizzard keeps
     -- ownership of paging, keybindings, drag/drop, cooldowns and secure clicks.
@@ -144,6 +183,8 @@ local function PlaceBar(bar, row)
         ns.SetSize(container, size, height)
         ns.ClearPoints(container)
         local x, y = ns.BarSlot(metrics, i)
+        local pref = ns.db.barSettings[row]
+        if pref.individual then x, y = x + pref.offsets[i].x, y + pref.offsets[i].y end
         ns.SetPoint(container, "BOTTOMLEFT", bar, "BOTTOMLEFT", x, y)
         ns.FixedScale(button)
         ns.SetSize(button, size, height)
@@ -152,12 +193,14 @@ local function PlaceBar(bar, row)
         -- anchors. Keep both native parents so action/paging code is retained.
         ns.SetPoint(button, "BOTTOMLEFT", anchor, "BOTTOMLEFT", x, y)
         ns.SkinActionButton(button, i, metrics)
+        ButtonEditor(button, anchor, bar, row, i, x, y, size, height)
     end
     ns.Hook(bar, "SetPoint", ns.QueueLayout)
     ns.Hook(bar, "UpdateGridLayout", ns.QueueLayout)
     ns.Hook(bar, "UpdateShownButtons", ns.QueueLayout)
     -- Visibility is mirrored by RefreshBarPanels; it does not need a full reflow.
     ns.RefreshBarPanels()
+    ns.RefreshButtonEditors()
 end
 
 local function VehicleExit()

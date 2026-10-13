@@ -1,7 +1,8 @@
 local _, ns = ...
 
 ns.defaults.barSettings = {}
-for i = 1, 8 do ns.defaults.barSettings[i] = {size = 0, spacing = -1, columns = 12, shape = "inherit", layout = "horizontal", border = "soft", keyPosition = "outside"} end
+for i = 1, 8 do ns.defaults.barSettings[i] = {size = 0, spacing = -1, columns = 12, shape = "inherit", layout = "horizontal", border = "soft", keyPosition = "outside", individual = false, offsets = {}} end
+for i = 1, 8 do for j = 1, 12 do ns.defaults.barSettings[i].offsets[j] = {x = 0, y = 0} end end
 ns.defaults.editor = {snap = false, grid = 16, guides = false, freePlacement = false}
 ns.defaults.fontFace = "standard"
 ns.defaults.fontSettings = {}
@@ -19,7 +20,7 @@ ns.defaults.meters = {enabled = true, colorMode = "native", color = {0.35, 0.8, 
 ns.defaults.trackers = {enabled = true, autoEnable = false, fontSize = 13, container = true,
     groups = {essential = true, utility = true, buffs = true, bars = true}, styles = {}}
 for _, key in ipairs({"essential", "utility", "buffs", "bars"}) do
-    ns.defaults.trackers.styles[key] = {scale = 1, fontSize = 0, background = true, skin = "framed", opacity = -1, timers = true, visibility = "always", layout = "fixed", arrangement = "native"}
+    ns.defaults.trackers.styles[key] = {scale = 1, fontSize = 0, background = true, skin = "framed", opacity = -1, timers = true, visibility = "always", layout = "fixed", arrangement = "native", radialRadius = 1}
 end
 ns.fontFaces = {standard = ns.FONT, friz = "Fonts\\FRIZQT__.TTF", arial = "Fonts\\ARIALN.TTF",
     skurri = "Fonts\\skurri.ttf", morpheus = "Fonts\\MORPHEUS.TTF"}
@@ -48,6 +49,7 @@ function ns.NormalizeCustomization()
         if style.skin ~= "minimal" and style.skin ~= "round" and style.skin ~= "tiles" and style.skin ~= "octagons" then style.skin = "framed" end
         style.opacity = Number(style.opacity, -1, -1, 1)
         if style.opacity < 0 then style.opacity = -1 end
+        style.radialRadius = Number(style.radialRadius, 1, 0.25, 2.5)
         style.scale = Number(style.scale, 1, 0.25, 2.5)
         style.fontSize = Number(style.fontSize, 0, 0, 32, true)
         if style.fontSize > 0 then style.fontSize = math.max(8, style.fontSize) end
@@ -63,7 +65,13 @@ function ns.NormalizeCustomization()
         bar.size = Number(bar.size, 0, 0, 64, true)
         if bar.size > 0 then bar.size = math.max(28, bar.size) end
         bar.spacing = Number(bar.spacing, -1, -1, 20)
-        if bar.layout ~= "vertical" and bar.layout ~= "cluster" and bar.layout ~= "radial" then bar.layout = "horizontal" end
+        if bar.layout == "vertical" then bar.columns = 1 elseif bar.layout == "cluster" then bar.columns = math.min(4, tonumber(bar.columns) or 12) end
+        bar.layout = "horizontal"
+        bar.offsets = type(bar.offsets) == "table" and bar.offsets or {}
+        for j = 1, 12 do
+            local offset = type(bar.offsets[j]) == "table" and bar.offsets[j] or {}
+            bar.offsets[j] = {x = Number(offset.x, 0, -2000, 2000), y = Number(offset.y, 0, -2000, 2000)}
+        end
         if bar.border ~= "thin" and bar.border ~= "bold" and bar.border ~= "none" then bar.border = "soft" end
         if bar.keyPosition ~= "inside" then bar.keyPosition = "outside" end
         bar.columns = Number(bar.columns, 12, 1, 12, true)
@@ -140,6 +148,8 @@ function ns.SetBarPreference(row, key, value)
         if value ~= "thin" and value ~= "soft" and value ~= "bold" and value ~= "none" then return end
     elseif key == "keyPosition" then
         if value ~= "inside" and value ~= "outside" then return end
+    elseif key == "individual" then
+        if type(value) ~= "boolean" then return end
     elseif key == "layout" then
         if value ~= "horizontal" and value ~= "vertical" and value ~= "cluster" and value ~= "radial" then return end
     elseif key == "size" or key == "spacing" or key == "columns" then

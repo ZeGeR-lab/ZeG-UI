@@ -32,7 +32,7 @@ end
 if mode == "custom_patterns" then
     local bar = MainActionBar
     local click = bar.actionButtons[1]:GetScript("OnClick")
-    ns.SetBarPreference(1, "layout", "vertical") h.tick()
+    ns.SetBarPreference(1, "columns", 1) h.tick()
     local m = ns.BarMetrics(1)
     assert(m.columns == 1 and m.lines == 12)
     local tall = m.rowHeight
@@ -45,28 +45,38 @@ if mode == "custom_patterns" then
     local _, _, _, x2, y2 = bar.actionButtons[2]:GetPoint()
     assert(x1 == x2 and y2 > y1)
     ns.SetBarPreference(1, "shape", "octagons")
-    ns.SetBarPreference(1, "layout", "cluster") h.tick()
+    ns.SetBarPreference(1, "columns", 4) h.tick()
     assert(ns.BarMetrics(1).columns == 4)
     assert(ns.buttonShapes[bar.actionButtons[1]].mask.texture:find("Octagon.tga", 1, true))
-    ns.SetBarPreference(1, "layout", "radial") h.tick()
-    m = ns.BarMetrics(1) assert(m.radial)
-    for i=1,12 do
-        local ax, ay = ns.BarSlot(m, i)
-        for j=i+1,12 do
-            local bx, by = ns.BarSlot(m, j)
-            assert(math.abs(ax-bx) >= m.buttonWidth or math.abs(ay-by) >= m.buttonHeight,
-                "Radial secure click rectangles overlap")
-        end
-    end
+    ns.SetBarPreference(1, "columns", 12)
+    ns.SetBarPreference(1, "individual", true)
+    ns.db.barSettings[1].offsets[1] = {x = 37, y = -22}
+    h.tick()
+    local gx, gy = ns.BarSlot(ns.BarMetrics(1), 1)
+    local _, relative, _, ix, iy = bar.actionButtons[1]:GetPoint()
+    assert(relative == ns.barAnchors[bar] and ix == gx+37 and iy == gy-22)
+    ns.Unlock(true)
+    assert(ns.buttonEditors[bar.actionButtons[1]].frame:IsShown())
+    local editor = ns.buttonEditors[bar.actionButtons[1]].frame
+    local originalCenter = editor.GetCenter
+    local bx, by = bar.actionButtons[1]:GetCenter()
+    editor.GetCenter = function() return bx+20, by-10 end
+    editor:GetScript("OnDragStart")() editor:GetScript("OnDragStop")() h.tick()
+    editor.GetCenter = originalCenter
+    assert(ns.db.barSettings[1].offsets[1].x == 57 and ns.db.barSettings[1].offsets[1].y == -32)
+    ns.Unlock(false)
+    assert(not ns.buttonEditors[bar.actionButtons[1]].frame:IsShown())
+    local highlight = ns.buttonShapes[bar.actionButtons[1]].highlight.region
+    assert(highlight.allPoints == bar.actionButtons[1])
     assert(bar.actionButtons[1]:GetScript("OnClick") == click)
     assert(ns.SaveProfile("Patterns"))
     local encoded = assert(ns.ExportProfile("Patterns"))
-    assert(encoded:find("radial",1,true) and encoded:find("octagons",1,true))
+    assert(encoded:find("individual",1,true) and encoded:find("octagons",1,true))
     h.fight(true) local before = h.mutations()
-    ns.SetBarPreference(1,"layout","horizontal") h.tick()
+    ns.SetBarPreference(1,"individual",false) h.tick()
     assert(h.mutations() == before)
     h.fight(false) h.tick()
-    assert(not ns.BarMetrics(1).radial)
+    assert(({bar.actionButtons[1]:GetPoint()})[4] == gx)
     ns.SetBarPreference(1,"shape","square") h.tick()
     assert(not ns.buttonShapes[bar.actionButtons[1]].active)
 elseif mode == "custom_profiles" then

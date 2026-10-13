@@ -160,8 +160,8 @@ local function Bars(page)
         function(v) ns.SetBarPreference(window.bar, "columns", v) end, 1, 12, 1)
     Choice(page, "Shape", -208, {{"inherit", "Use global shape"}, {"square", "Squares"}, {"triangles", "Alternating triangles"}, {"octagons", "Octagons"}},
         function() return Pref().shape end, function(v) ns.SetBarPreference(window.bar, "shape", v) end)
-    Choice(page, "Layout", -250, {{"horizontal", "Horizontal / wrap"}, {"vertical", "Vertical"}, {"cluster", "Grid cluster"}, {"radial", "Radial wheel"}},
-        function() return Pref().layout end, function(v) ns.SetBarPreference(window.bar, "layout", v) end)
+    Toggle(page, "Move individual buttons", -250, function() return Pref().individual end,
+        function(v) ns.SetBarPreference(window.bar, "individual", v) end)
     Choice(page, "Border", -284, {{"thin","Thin"},{"soft","Soft"},{"bold","Bold"},{"none","None"}},
         function() return Pref().border end, function(v) ns.SetBarPreference(window.bar,"border",v) end)
     Choice(page, "Hotkey labels", -318, {{"outside","Below icons"},{"inside","Inside icons"}},
@@ -172,7 +172,7 @@ local function Bars(page)
     end)
     local summary = Label(page, "", 0, -402)
     Refresh(page, function() local m = ns.BarMetrics(window.bar) summary:SetText("12 slots  |  " .. m.columns .. " per line  |  " .. m.lines .. " lines") end)
-    Help(page, "All 12 spell slots remain clickable. Vertical is one column; cluster wraps up to four columns. Radial is a wheel of separate buttons, not pie-slice hit regions. Move panels in Positions. Inside labels make the background more compact.", -435)
+    Help(page, "Set buttons per line to 1 for vertical or wrap into any grid. Enable individual buttons, then unlock frames to drag each slot. Offsets stay with the bar; turn the option off to restore its grid. Reset this bar clears offsets.", -435)
 end
 local function Fonts(page)
     local window = page.window window.fontCategory = "names"
@@ -363,7 +363,10 @@ local function Trackers(page)
         ns.db.trackers.styles[window.trackerGroup] = ns.Copy(ns.defaults.trackers.styles[window.trackerGroup])
         ns.db.positions["tracker" .. window.trackerGroup] = nil Changed()
     end)
-    Help(editor, "Hide/dim follows the native countdown (including buff/charge timers). Arrangements apply outside combat. Choose Positions or Move group to relocate it. Radial uses separate icons; timer bars use rows/columns.", -422)
+    local radius = ns.SettingSlider(editor, 0, -430, 550, 0.25, 2.5, 0.01,
+        function() return Pref().radialRadius end, function(v) Pref().radialRadius = v end, Changed, "Radial radius")
+    page:SetHeight(590)
+    Help(editor, "Hide/dim follows the native countdown (including buff/charge timers). Arrangements apply outside combat. Choose Positions or Move group to relocate it. Radial uses separate icons; timer bars use rows/columns. Smaller radius can overlap icons.", -482)
     Toggle(manager, "Skin Blizzard trackers", -76, function() return ns.db.trackers.enabled end,
         function(v) ns.db.trackers.enabled = v end)
     Button(manager, "Enable Blizzard tracking", 0, -118, 266, ns.EnableBlizzardTrackers)
@@ -380,7 +383,9 @@ local function Trackers(page)
         for key, button in pairs(groupButtons) do ns.ThemeButton(button, key == window.trackerGroup) end
         enabled.label:SetText(ns.db.trackers.groups[window.trackerGroup] and "Group skin: On" or "Group skin: Off")
         ns.ThemeButton(enabled, ns.db.trackers.groups[window.trackerGroup])
-        page.trackerScale:RefreshValue() opacity:RefreshValue()
+        page.trackerScale:RefreshValue() opacity:RefreshValue() radius:RefreshValue()
+        local radial = Pref().arrangement == "radial"
+        radius:SetShown(radial) radius.valueLabel:SetShown(radial)
         local cooldowns = window.trackerGroup == "essential" or window.trackerGroup == "utility"
         visibility:SetShown(cooldowns) layout:SetShown(cooldowns)
         timers:SetShown(window.trackerGroup ~= "bars") timers.label:SetText(Pref().timers and "Icon timers: On" or "Icon timers: Off")
