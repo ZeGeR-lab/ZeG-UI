@@ -52,3 +52,7 @@ Action bars now support individual button positioning while retaining bar member
 ### 0.4.16
 
 Performance update removes masks from animated button effects, stops full HUD rebuilds on pet ability updates, and coalesces pending layout notifications. Native ability handlers and timers are retained.
+
+### 0.4.17
+
+Removes solid white activation triangles and suppresses decorative animations for shaped action buttons. Hotkey and shown-button updates no longer rebuild the HUD; unchanged grid notifications are ignored. Native cooldowns and subtle hover feedback remain.

@@ -28,20 +28,17 @@ local function MaskRegion(state, region)
     end
 end
 
-local function ShapeEffect(state, region, fill)
-    if not region or not region.SetTexture then return end
-    state.effects = state.effects or {}
-    if not state.effects[region] then
-        local original = {texture = region:GetTexture(), points = {},
-            coords = region.GetTexCoord and {region:GetTexCoord()} or nil}
-        local atlas = region.GetAtlas and region:GetAtlas()
-        original.atlas = ns.Readable(atlas) and atlas or nil
-        for i = 1, region:GetNumPoints() do original.points[i] = {region:GetPoint(i)} end
-        state.effects[region] = original
-    end
-    region:SetTexture(fill)
-    if region.SetTexCoord then region:SetTexCoord(0, 1, 0, 1) end
-    region:ClearAllPoints() region:SetAllPoints(state.button)
+local function QuietEffect(state, region)
+    if not region or not region.SetVertexColor then return end
+    state.effectColors = state.effectColors or {}
+    if not state.effectColors[region] then state.effectColors[region] = {region:GetVertexColor()} end
+    region:SetVertexColor(1, 1, 1, 0)
+end
+local function QuietAnimation(state, frame)
+    if not frame or not frame.SetAlpha then return end
+    state.animationAlphas = state.animationAlphas or {}
+    if state.animationAlphas[frame] == nil then state.animationAlphas[frame] = frame:GetAlpha() end
+    frame:SetAlpha(0)
 end
 
 local function StyleHighlight(state, button, fill)
@@ -79,12 +76,8 @@ function ns.ShapeButton(button, icon, index, metrics)
             if h.coords then h.region:SetTexCoord(unpack(h.coords)) end
             if h.color then h.region:SetVertexColor(unpack(h.color)) end
         end
-        for region, original in pairs(state.effects or {}) do
-            if original.atlas and region.SetAtlas then region:SetAtlas(original.atlas) else region:SetTexture(original.texture) end
-            if original.coords then region:SetTexCoord(unpack(original.coords)) end
-            region:ClearAllPoints()
-            for _, point in ipairs(original.points) do region:SetPoint(unpack(point)) end
-        end
+        for region, color in pairs(state.effectColors or {}) do region:SetVertexColor(unpack(color)) end
+        for frame, alpha in pairs(state.animationAlphas or {}) do frame:SetAlpha(alpha) end
         state.panel:Hide()
         state.border:Hide()
         button.ccuiBackground:Show()
@@ -144,11 +137,11 @@ function ns.ShapeButton(button, icon, index, metrics)
     state.border:Show()
     button.ccuiBackground:Hide()
     MaskRegion(state, icon)
-    -- Animated art uses baked alpha instead of GPU masks. Native handlers,
-    -- visibility and animation timing remain owned by Blizzard.
+    -- Suppress decorative activation flashes rather than stretching opaque
+    -- shape artwork over the spell icon. No animation textures are replaced.
     for _, field in ipairs({"PushedTexture", "CheckedTexture",
         "Flash", "SpellHighlightTexture", "NewActionTexture"}) do
-        ShapeEffect(state, button[field], fill)
+        QuietEffect(state, button[field])
     end
     for _, field in ipairs({"cooldown", "chargeCooldown", "lossOfControlCooldown"}) do
         local cooldown = button[field] or (field == "cooldown" and button.Cooldown)
@@ -166,9 +159,11 @@ function ns.ShapeButton(button, icon, index, metrics)
     end
     StyleHighlight(state, button, fill)
     -- Do not traverse/mask proc glows, hover effects or all descendant textures.
-    -- The cast fill uses the same baked shape; completion flair stays native.
+    -- Hide decorative cast/hover animation parents; cooldown timing stays native.
     local cast = button.SpellCastAnimFrame or button.CastingAnimFrame
-    if cast and cast.Fill then ShapeEffect(state, cast.Fill.CastFill, fill) end
+    QuietAnimation(state, cast)
+    QuietAnimation(state, button.HoverGlow)
+    QuietAnimation(state, button.SpellActivationAlert)
     -- WoW buttons have rectangular hit regions. Give each overlapping frame
     -- a disjoint center column, leaving a one-pixel gap between click regions.
     -- Secure native buttons still receive clicks and item/spell drag operations.

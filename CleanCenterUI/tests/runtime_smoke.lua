@@ -95,6 +95,7 @@ end
 function methods:SetTexture(value) self.texture = value end
 function methods:SetMaskTexture(value) self.maskTexture = value end
 function methods:GetTexture() return self.texture end
+function methods:GetVertexColor() return unpack(self.vertexColor or {1,1,1,1}) end
 function methods:GetName() return self.name end
 function methods:SetScale(value) Mutate(self) self.scale = value end
 function methods:GetScale() return self.scale end
@@ -1744,7 +1745,7 @@ local function CheckTriangleClicks()
         local cast = button.SpellCastAnimFrame.Fill.CastFill
         local mask = state.masked[cast]
         assert(not mask and next(cast.masks or {}) == nil, "Animated cast fill still uses a mask")
-        assert(cast:GetTexture() == state.mask.texture and cast.allPoints == button, "Cast fill does not fit its shape")
+        assert(cast:GetTexture() == "NativeCastFill" and button.SpellCastAnimFrame:GetAlpha() == 0, "Decorative cast animation was not suppressed")
         local burst = button.SpellCastAnimFrame.EndBurst.Flash
         assert(not state.masked[burst], "Completion flair was masked again")
         assert(not state.masked[button.HoverGlow.Art], "Expensive hover glow masking returned")
@@ -1911,7 +1912,7 @@ if ns.stanceAnchor then
     ns.SetStanceShape("triangles") Tick()
     assert(ns.db.buttonShape == oldActionShape, "Stance shape changed the main action-button shape")
     local first, second = StanceBar.actionButtons[1], StanceBar.actionButtons[2]
-    assert(ns.buttonShapes[first].active and ns.buttonShapes[second].active)
+    assert(ns.buttonShapes[first].active and ns.buttonShapes[second].active, tostring(ns.lastError))
     assert(ns.buttonShapes[first].mask.texture:find("TriangleUp.tga", 1, true)
         and ns.buttonShapes[second].mask.texture:find("TriangleDown.tga", 1, true))
     assert(first.scripts.OnClick == nativeClick and first:GetParent() == first.container)

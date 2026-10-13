@@ -79,6 +79,11 @@ if mode == "custom_patterns" then
     assert(({bar.actionButtons[1]:GetPoint()})[4] == gx)
     ns.SetBarPreference(1,"shape","square") h.tick()
     assert(not ns.buttonShapes[bar.actionButtons[1]].active)
+    assert(not ns.pending)
+    for i = 1, 100 do
+        bar.actionButtons[1]:UpdateHotkeys() bar:UpdateShownButtons() bar:UpdateGridLayout()
+    end
+    assert(not ns.pending, "Ordinary action updates still requested a full HUD rebuild")
 elseif mode == "custom_profiles" then
     ns.db.unitStyles.player.classColor = false ns.db.unitStyles.player.portrait = false
     ns.db.unitStyles.player.healthColor = {0.17, 0.41, 0.83, 0.7}

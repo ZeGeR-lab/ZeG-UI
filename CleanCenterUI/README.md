@@ -239,3 +239,7 @@ In **Trackers → Edit groups**, choose **Radial wheel** and adjust **Radial rad
 ### Ability rendering performance (0.4.16)
 
 Animated action-button effects now use shaped alpha textures without extra mask passes. The icon keeps its static shape mask. Pet action updates no longer request a full UI layout, and duplicate pending layout notifications are coalesced. Native animations, spell handlers and cooldown timing remain in control.
+
+### Quiet action effects (0.4.17)
+
+Shaped buttons now suppress decorative cast, activation and hover glow animations rather than filling the icon with a solid white shape. Subtle shaped hover feedback and native cooldowns remain. Hotkey updates refresh only label styling; shown-button changes and unchanged grid updates no longer request a full HUD rebuild. Returning to square buttons restores native decorative effect opacity.

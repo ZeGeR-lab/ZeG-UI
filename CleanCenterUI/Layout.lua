@@ -98,7 +98,9 @@ function ns.SkinActionButton(button, index, metrics)
     art:SetShown(not metrics.shaped and not metrics.triangle)
     ns.SetBorderColor(button.ccuiBackground,0,0,0,0)
     ns.StyleCooldownNumbers(button, metrics, index)
-    ns.Hook(button, "UpdateHotkeys", ns.QueueLayout)
+    ns.Hook(button, "UpdateHotkeys", function()
+        if hotkey then ns.StyleFont(hotkey, "keybinds", metrics.triangle and 10 or 11) hotkey:SetTextColor(unpack(ns.db.colors.text)) end
+    end)
 end
 
 ns.buttonEditors = {}
@@ -196,8 +198,16 @@ local function PlaceBar(bar, row)
         ButtonEditor(button, anchor, bar, row, i, x, y, size, height)
     end
     ns.Hook(bar, "SetPoint", ns.QueueLayout)
-    ns.Hook(bar, "UpdateGridLayout", ns.QueueLayout)
-    ns.Hook(bar, "UpdateShownButtons", ns.QueueLayout)
+    ns.Hook(bar, "UpdateGridLayout", function()
+        if ns.applying or ns.restoring or InCombatLockdown() then return end
+        local first = bar.actionButtons and bar.actionButtons[1]
+        if first then
+            local point, relative = first:GetPoint()
+            if ns.Readable(point) and ns.Readable(relative) and relative == anchor then return end
+        end
+        ns.QueueLayout()
+    end)
+    -- Visibility changes are mirrored by the panel poll without a full rebuild.
     -- Visibility is mirrored by RefreshBarPanels; it does not need a full reflow.
     ns.RefreshBarPanels()
     ns.RefreshButtonEditors()

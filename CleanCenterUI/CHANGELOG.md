@@ -1,3 +1,10 @@
+## 0.4.17 — Quiet activation effects and localized updates
+
+- Remove solid white activation shapes. Shaped buttons suppress decorative cast, hover and flash effects while retaining native cooldowns and subtle shaped hover feedback.
+- Restore original artwork and effect opacity when returning to square buttons.
+- Hotkey updates only refresh the label font/color, rather than rebuilding the entire HUD.
+- Shown-button updates no longer rebuild the HUD, and unchanged grid notifications are ignored.
+
 ## 0.4.16 — Reduce ability and hover rendering work
 
 - Remove masks from animated pressed, checked, flash, proc-overlay and cast-fill textures. Use baked alpha shapes with native timing and restore their original artwork for square buttons.
