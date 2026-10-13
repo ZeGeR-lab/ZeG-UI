@@ -4,7 +4,8 @@ function ns.CreateLauncher()
     if ns.launcher or not Minimap then return end
     local button = CreateFrame("Button", "ZeGUIMinimapButton", UIParent)
     ns.launcher = button
-    button:SetSize(30, 30)
+    button:SetSize(20, 20)
+    button:SetScale(0.8)
     button:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", -4, -4)
     button:SetFrameStrata("HIGH")
     button:SetFrameLevel(30)
@@ -17,8 +18,7 @@ function ns.CreateLauncher()
     icon:SetPoint("TOPLEFT", 2, -2) icon:SetPoint("BOTTOMRIGHT", -2, 2)
     icon:SetTexture("Interface\\Icons\\INV_Misc_Gear_01")
     icon:SetVertexColor(0.35, 0.8, 0.95, 1)
-    local label = ns.Font(button, 12, "CENTER")
-    label:SetPoint("BOTTOM", 0, 1) label:SetText("Z")
+
     button:SetScript("OnClick", function(_, mouse)
         if mouse == "RightButton" then ns.OpenCustomize("trackers") else ns.OpenCustomize("general") end
     end)
@@ -47,7 +47,7 @@ function ns.RefreshLauncher()
     if not button or not Minimap then return end
     button:ClearAllPoints()
     button:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", -4, -4)
-    button:SetScale(1)
+    button:SetSize(20,20) button:SetScale(0.8)
     button:SetAlpha(1)
     button:SetFrameStrata("HIGH")
     button:Show()

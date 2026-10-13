@@ -223,3 +223,9 @@ This build removes broad animation masking associated with the reported triangle
 
 
 **Action-bar finishing:** select Thin, Soft, Bold or None under Border. Soft is the default for new border preferences and uses a wider blurred stroke. Set Hotkey labels to Inside icons to remove the below-icon label strip and shrink the bar background; Below icons restores the original spacing. These settings are independent per bar and included in profiles.
+
+
+### Compact menus and free placement (0.4.14)
+`/zeg` opens a smaller scrollable menu. The current section is marked with an accent stripe and breadcrumb. Unlock/Lock frames remains in the fixed header; Snap can also be toggled there. The setup wizard uses a shorter scrollable body, with preview scaling anchored to its own holder to avoid overlapping controls.
+On first use of this version, snapping and dense grid guides are disabled. Re-enable them in Positions if wanted. Optional snapping only nudges a coordinate within two units of a grid line; hold Alt when dropping a panel for exact free placement. Existing saved positions are kept.
+The minimap launcher is smaller and independent of map scale.

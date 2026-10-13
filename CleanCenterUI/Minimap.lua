@@ -203,7 +203,8 @@ function ns.OpenMinimapOptions()
             window.controls[#window.controls + 1] = button
             return button
         end
-        Label("Square minimap", 24, -20, 20)
+        Label("Square minimap", 24, -20, 16)
+        window.frameLock = ns.FrameLockButton(window, 218, -16, 150)
         Label("Size (120-360)", 24, -82)
         Button("X", 26, 378, -16, function() window:Hide() end)
         window.minus = Button("-", 30, 210, -74, function() ns.SetMinimapSize(ns.db.minimapSize - 10) end)

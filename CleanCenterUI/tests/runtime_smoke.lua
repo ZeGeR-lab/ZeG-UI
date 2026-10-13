@@ -1175,6 +1175,11 @@ if TEST_MODE == "trackers_native" then
     ns.OpenTrackerAssistant()
     local wizard = ns.trackerAssistant
     assert(wizard:IsShown() and wizard.step == 1 and wizard.group == "buffs")
+    assert(wizard.height == 500 and wizard.frameLock:IsShown())
+    assert(wizard.pages[2].viewport.scrollChild == wizard.pages[2])
+    local _, previewHost, _, px, py = wizard.preview:GetPoint()
+    assert(previewHost == wizard.preview:GetParent() and px == 0 and py == 0,
+        "Scaled preview moved into controls")
     wizard.groupButtons.essential:GetScript("OnClick")()
     assert(wizard.group == "essential")
     wizard.next:GetScript("OnClick")()
@@ -1194,6 +1199,7 @@ if TEST_MODE == "trackers_native" then
     ns.launcher:Hide() ns.launcher:SetAlpha(0)
     ns.RefreshLauncher()
     assert(ns.launcher:IsShown() and ns.launcher:GetAlpha() == 1)
+    assert(ns.launcher:GetWidth() == 20 and ns.launcher:GetScale() == 0.8)
     assert(({ns.launcher:GetPoint()})[2] == Minimap)
     ns.launcher:GetScript("OnClick")(ns.launcher, "LeftButton")
     assert(ns.customize:IsShown() and ns.customize.page == "general")
@@ -1393,9 +1399,9 @@ if TEST_MODE:match("^vehicle_exit") then
     ns.Unlock(true)
     ns.movers.vehicleexit.scripts.OnDragStart() ns.movers.vehicleexit.scripts.OnDragStop() Tick()
     ns.vehicleExitAnchor.GetCenter = getCenter
-    assert(ns.db.positions.vehicleexit.x == ns.SnapCoordinate(-370) and ns.db.positions.vehicleexit.y == -320)
+    assert(ns.db.positions.vehicleexit.x == -370 and ns.db.positions.vehicleexit.y == -320)
     ns.SetButtonShape("square") Tick() CheckVehicleExit()
-    assert(ns.db.positions.vehicleexit.x == ns.SnapCoordinate(-370), "Exit style/size change removed its saved position")
+    assert(ns.db.positions.vehicleexit.x == -370, "Exit style/size change removed its saved position")
     ns.db.positions.vehicleexit, ns.db.positions.bar2 = saved, movedRow
     ns.SetButtonShape("triangles") Tick() ns.Unlock(false) CheckVehicleExit()
 end

@@ -121,6 +121,8 @@ elseif mode == "custom_profile_combat" then
     assert(ns.LoadProfile("Large") and ns.pendingProfile)
     EventRegistry:TriggerEvent("EditMode.Exit") h.tick() assert(not ns.pendingProfile)
 elseif mode == "custom_alignment" then
+    assert(not ns.db.editor.snap and not ns.db.editor.guides)
+    ns.db.editor.snap, ns.db.editor.guides, ns.db.editor.grid = true, true, 8
     assert(ns.SavePosition("player", 31, -44, false))
     ns.MirrorUnitPositions("player") h.tick()
     assert(ns.db.positions.target.x == -31 and ns.db.positions.target.y == -44)
@@ -130,8 +132,14 @@ elseif mode == "custom_alignment" then
     ns.Unlock(true) assert(ns.guides:IsShown() and #ns.guides.lines > 2)
     mover:GetScript("OnDragStart")() mover:GetScript("OnDragStop")() h.tick()
     frame.GetCenter = previous
-    assert(ns.db.positions.player.x == 48 and ns.db.positions.player.y == -24)
+    assert(ns.db.positions.player.x == 51 and ns.db.positions.player.y == -27)
     assert(not ns.SavePosition("player", 0/0, 5, false))
+    ns.SavePosition("target",49,17,true)
+    assert(ns.db.positions.target.x == 48 and ns.db.positions.target.y == 16, "Gentle snap missed a nearby grid line")
+    IsAltKeyDown = function() return true end
+    ns.SavePosition("target",49,17,true)
+    assert(ns.db.positions.target.x == 49 and ns.db.positions.target.y == 17, "Alt did not bypass snapping")
+    IsAltKeyDown = nil
     ns.db.editor.snap = false ns.SavePosition("target", 35, 19, true)
     assert(ns.db.positions.target.x == 35 and ns.db.positions.target.y == 19)
     h.fight(true) assert(not ns.guides:IsShown() and not mover:IsShown())
@@ -345,6 +353,14 @@ elseif mode == "custom_ui" then
     ns.OpenCustomize("auras") Click(ns.customize.pages.auras,"Move fixed tooltip location") h.tick()
     assert(ns.db.tooltip.anchor == "fixed" and ns.selectedMover == "tooltip" and ns.unlocked)
     SlashCmdList.CLEANCENTERUI("fonts") assert(ns.customize.page == "fonts")
+    ns.OpenCustomize("trackers")
+    assert(ns.customize.width == 750 and ns.customize.height == 520 and ns.customize:GetScale() <= 0.85)
+    assert(ns.customize.tabs.trackers.activeRail:IsShown() and not ns.customize.tabs.general.activeRail:IsShown())
+    assert(ns.customize.pages.trackers.viewport.scrollChild == ns.customize.pages.trackers)
+    assert(ns.customize.frameLock:IsShown())
+    ns.Unlock(false)
+    ns.customize.frameLock:GetScript("OnClick")() assert(ns.unlocked and ns.customize.frameLock.label:GetText() == "Lock frames")
+    ns.customize.frameLock:GetScript("OnClick")() assert(not ns.unlocked)
     ns.OpenOptions() assert(not ns.customize:IsShown())
     ns.options.customize:GetScript("OnClick")() assert(ns.customize:IsShown() and not ns.options:IsShown())
 else error("Unknown customization test") end

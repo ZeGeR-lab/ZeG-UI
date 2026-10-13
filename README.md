@@ -1,6 +1,6 @@
 # ZeG UI
 
-Full WoW Forever UI. Current test build: **0.4.13**.
+Full WoW Forever UI. Current test build: **0.4.14**.
 
 ## Installation
 
@@ -40,3 +40,7 @@ Countdown hiding offers Fixed slots or Compact outside combat. Compaction closes
 - Removed recursive animation masks associated with triangle hover FPS loss; highlights now use pre-shaped textures. Only cast-fill masking remains; completion/proc flair stays native.
 
 65 simulated scenarios pass. In-game FPS and native combat reflow still need verification.
+
+## Compact menus and placement
+
+Main settings and setup now use smaller, scrollable windows with fixed Unlock/Lock controls and a clear current-section indicator. Snapping and grid guides start off; optional snap only attracts within two units of a grid line, and Alt bypasses it. The minimap launcher is smaller. Existing positions are kept.

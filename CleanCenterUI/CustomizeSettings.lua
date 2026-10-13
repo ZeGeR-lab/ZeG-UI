@@ -141,7 +141,7 @@ local function Alignment(page)
     Button(page, "Reset selected position", 284, -294, 266, function() ns.db.positions[Key()] = nil ns.QueueLayout() end)
     local unlock = Button(page, "Unlock panels", 0, -336, 550, function() ns.Unlock(not ns.unlocked) ns.RefreshCustomize() end)
     Refresh(page, function() unlock.label:SetText(ns.unlocked and "Lock panels" or "Unlock panels") end)
-    Help(page, "Drag while unlocked. Right-click any mover to select it here. Exact coordinates do not snap.", -386)
+    Help(page, "Drag while unlocked. Right-click any mover to select it here. Snapping is gentle and optional. Hold Alt while dropping a panel to bypass it. Exact coordinates do not snap.", -386)
 end
 local function Bars(page)
     local window = page.window window.bar = 1
@@ -393,23 +393,34 @@ function ns.CreateCustomize()
     local window = CreateFrame("Frame", "CleanCenterUICustomize", UIParent)
     ns.customize = window window.window = window
     window.controls, window.refreshers, window.pages, window.tabs = {}, {}, {}, {}
-    window:SetSize(780, 620) window:SetPoint("CENTER") window:SetFrameStrata("DIALOG") window:SetFrameLevel(125)
+    window:SetSize(750, 520) window:SetPoint("CENTER") window:SetFrameStrata("DIALOG") window:SetFrameLevel(125)
     window:SetClampedToScreen(true) window:EnableMouse(true) window:SetMovable(true) window:RegisterForDrag("LeftButton")
     window:SetScript("OnDragStart", window.StartMoving) window:SetScript("OnDragStop", window.StopMovingOrSizing)
     ns.Panel(window, 0.98)
     Label(window, "ZeG UI Settings", 24, -20, 20)
-    Label(window, "Choose a section; edit directly; changes save automatically", 24, -49, 13)
-    Button(window, "HUD modules", 602, -18, 120, function() window:Hide() ns.OpenOptions() end)
-    Button(window, "X", 736, -18, 26, function() window:Hide() end)
+    window.sectionTitle = Label(window, "", 18, -48, 15)
+    window.sectionTitle:SetWidth(380)
+    window.frameLock = ns.FrameLockButton(window, 414, -18, 148)
+    window.snapToggle = Button(window, "", 574, -18, 124, function()
+        ns.db.editor.snap = not ns.db.editor.snap Changed()
+    end)
+    Button(window, "X", 714, -18, 26, function() window:Hide() end)
     for i, item in ipairs(pages) do
         local key = item[1]
-        window.tabs[key] = Button(window, item[2], 24, -91 - (i - 1) * 38, 136, function() ns.OpenCustomize(key) end)
-        local page = CreateFrame("Frame", nil, window) page.window = window
-        page:SetPoint("TOPLEFT", 194, -91) page:SetSize(550, 466) page:Hide()
+        window.tabs[key] = Button(window, item[2], 18, -78 - (i - 1) * 32, 140, function() ns.OpenCustomize(key) end)
+        local tab = window.tabs[key]
+        tab.activeRail = tab:CreateTexture(nil, "OVERLAY")
+        tab.activeRail:SetPoint("TOPLEFT", 0, 0) tab.activeRail:SetPoint("BOTTOMLEFT", 0, 0) tab.activeRail:SetWidth(4)
+        tab.sectionName = item[2]
+        local viewport = CreateFrame("ScrollFrame", nil, window, "UIPanelScrollFrameTemplate")
+        viewport:SetPoint("TOPLEFT",176,-78) viewport:SetSize(550,365)
+        local page = CreateFrame("Frame", nil, viewport) page.window = window page.viewport = viewport
+        page:SetPoint("TOPLEFT",0,0) page:SetSize(550,520)
+        viewport:SetScrollChild(page) viewport:SetVerticalScroll(0) page:Hide() viewport:Hide()
         window.pages[key] = page builders[key](page)
     end
-    window.status = Label(window, "", 24, -588, 12)
-    window.status:SetWidth(730)
+    window.status = Label(window, "", 18, -490, 12)
+    window.status:SetWidth(710)
     window:SetScript("OnShow", ns.RefreshCustomize)
     window:SetScript("OnHide", function()
         ns.CancelAppearanceColor() window.profileName:ClearFocus() window.profileText:ClearFocus()
@@ -421,12 +432,20 @@ function ns.RefreshCustomize()
     local window = ns.customize
     if not window then return end
     local height = UIParent:GetHeight()
-    if ns.Finite(height) then window:SetScale(math.min(1, math.max(0.5, (height - 36) / 620))) end
+    if ns.Finite(height) then window:SetScale(math.min(0.85, math.max(0.45, (height - 36) / 520))) end
     ns.Panel(window, 0.98)
     for _, button in ipairs(window.controls) do ns.ThemeButton(button) end
     for key, button in pairs(window.tabs) do
-        ns.ThemeButton(button, window.page == key) window.pages[key]:SetShown(window.page == key)
+        local selected = window.page == key
+        ns.ThemeButton(button, selected)
+        button.activeRail:SetColorTexture(unpack(ns.db.colors.accent)) button.activeRail:SetShown(selected)
+        button.label:SetTextColor(unpack(selected and ns.db.colors.accent or ns.db.colors.text))
+        window.pages[key]:SetShown(selected) window.pages[key].viewport:SetShown(selected)
+        if selected then window.sectionTitle:SetText("Settings  /  " .. button.sectionName) end
     end
+    window.snapToggle.label:SetText(ns.db.editor.snap and "Snap: On" or "Snap: Off")
+    ns.ThemeButton(window.snapToggle, ns.db.editor.snap)
+    ns.RefreshLockControls()
     for _, refresh in ipairs(window.refreshers) do refresh() end
     if InCombatLockdown() and (ns.pending or ns.pendingProfile) then window.status:SetText("Changes saved. They apply after combat.")
     elseif ns.blizzardEditing then window.status:SetText("Changes apply when Blizzard Edit Mode closes.")

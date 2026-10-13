@@ -29,3 +29,21 @@ function ns.SettingSlider(parent, x, y, width, lo, hi, step, get, set, changed, 
     slider:RefreshValue()
     return slider
 end
+
+ns.lockControls = {}
+function ns.FrameLockButton(parent, x, y, width)
+    local button = CreateFrame("Button", nil, parent)
+    button:SetSize(width or 140, 28) button:SetPoint("TOPLEFT", x, y)
+    ns.Panel(button, 1)
+    button.label = ns.Font(button, 12, "CENTER") button.label:SetPoint("CENTER")
+    button:SetScript("OnClick", function() ns.Unlock(not ns.unlocked) ns.RefreshLockControls() end)
+    ns.lockControls[#ns.lockControls+1] = button
+    ns.RefreshLockControls()
+    return button
+end
+function ns.RefreshLockControls()
+    for _, button in ipairs(ns.lockControls) do
+        button.label:SetText(ns.unlocked and "Lock frames" or "Unlock frames")
+        ns.ThemeButton(button, ns.unlocked)
+    end
+end

@@ -42,7 +42,10 @@ function ns.RefreshTrackerAssistant()
     if not w then return end
     local group = Group(w.group)
     w.heading:SetText("Tracker Setup  |  " .. w.step .. " / 4")
-    for i, page in ipairs(w.pages) do page:SetShown(w.step == i) end
+    for i, page in ipairs(w.pages) do page:SetShown(w.step == i) page.viewport:SetShown(w.step == i) end
+    ns.RefreshLockControls()
+    local height = UIParent:GetHeight()
+    if ns.Finite(height) then w:SetScale(math.min(0.85,math.max(0.45,(height-36)/500))) end
     w.back:SetShown(w.step > 1)
     w.next.label:SetText(w.step == 4 and "Save group style" or "Next")
     w.subtitle:SetText(ClassName() .. "  |  " .. ns.TrackerStatus())
@@ -94,15 +97,19 @@ function ns.OpenTrackerAssistant()
         local w = CreateFrame("Frame", "ZeGUITrackerAssistant", UIParent)
         ns.trackerAssistant = w
         w.draft = ns.Copy(ns.db.trackers.styles.buffs)
-        w:SetSize(620, 660) w:SetPoint("CENTER") w:SetFrameStrata("DIALOG") w:SetFrameLevel(150)
+        w:SetSize(620, 500) w:SetPoint("CENTER") w:SetFrameStrata("DIALOG") w:SetFrameLevel(150)
         w:SetClampedToScreen(true) ns.Panel(w, 0.98)
         w.heading = Label(w, "", 24, -20, 550, 20)
-        w.subtitle = Label(w, "", 24, -52, 560, 12)
+        w.subtitle = Label(w, "", 24, -52, 390, 11)
+        w.frameLock = ns.FrameLockButton(w, 426, -48, 170)
         Button(w, "X", 568, -18, 28, function() w:Hide() end)
         w.pages = {}
         for i = 1, 4 do
-            local page = CreateFrame("Frame", nil, w)
-            page:SetPoint("TOPLEFT", 24, -92) page:SetSize(572, 466) w.pages[i] = page
+            local viewport = CreateFrame("ScrollFrame", nil, w, "UIPanelScrollFrameTemplate")
+            viewport:SetPoint("TOPLEFT",24,-88) viewport:SetSize(550,332)
+            local page = CreateFrame("Frame", nil, viewport)
+            page.viewport = viewport page:SetPoint("TOPLEFT",0,0) page:SetSize(572,480)
+            viewport:SetScrollChild(page) viewport:SetVerticalScroll(0) w.pages[i] = page
         end
         local first = w.pages[1]
         Label(first, "1. Which group would you like to set up?", 0, 0)
@@ -147,8 +154,10 @@ function ns.OpenTrackerAssistant()
             ns.RefreshTrackerAssistant()
         end)
         Label(style, "Sample preview (fitted to window) — not live tracking", 0, -204, 550, 12)
-        w.preview = CreateFrame("Frame", nil, style)
-        w.preview:SetSize(310, 116) w.preview:SetPoint("TOPLEFT", 4, -232) ns.Panel(w.preview, 0.9)
+        local previewHost = CreateFrame("Frame", nil, style)
+        previewHost:SetSize(540,176) previewHost:SetPoint("TOPLEFT",4,-232)
+        w.preview = CreateFrame("Frame", nil, previewHost)
+        w.preview:SetSize(310, 116) w.preview:SetPoint("TOPLEFT",previewHost,"TOPLEFT",0,0) ns.Panel(w.preview, 0.9)
         w.previewItems = {}
         for i = 1, 2 do
             local item = CreateFrame("Frame", nil, w.preview)
@@ -185,12 +194,12 @@ function ns.OpenTrackerAssistant()
         end)
         Button(finish, "Advanced tracker settings", 284, -178, 266, function() w:Hide() ns.OpenCustomize("trackers") end)
         Label(finish, "Use /zeg lock when finished. To select different spells for this group, return to Blizzard's editor. Setting up a group does not duplicate or move spells between native groups.", 0, -238, 550, 13)
-        w.back = Button(w, "Back", 24, -578, 110, function() w.step = math.max(1, w.step-1) ns.RefreshTrackerAssistant() end)
-        w.next = Button(w, "Next", 392, -578, 204, function()
+        w.back = Button(w, "Back", 24, -432, 110, function() w.step = math.max(1, w.step-1) ns.RefreshTrackerAssistant() end)
+        w.next = Button(w, "Next", 392, -432, 204, function()
             if w.step == 4 then ns.CommitTrackerAssistant() else w.step = w.step+1 end
             ns.RefreshTrackerAssistant()
         end)
-        w.status = Label(w, "", 24, -622, 570, 12)
+        w.status = Label(w, "", 24, -473, 570, 12)
         UISpecialFrames = UISpecialFrames or {} table.insert(UISpecialFrames, "ZeGUITrackerAssistant")
         w:Hide()
     end

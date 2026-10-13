@@ -1,3 +1,13 @@
+## 0.4.14 — Compact menus, clear navigation and free placement
+
+- Main settings and tracker setup have shorter windows and scrollable content; header/footer controls stay fixed.
+- Current section shown as a breadcrumb plus an accent rail and colored tab label.
+- Unlock/Lock frames is available in the main menu, setup, module controls, appearance and minimap settings.
+- Fixes the scaled tracker preview's anchor so reducing its scale cannot pull it over other controls.
+- One-time migration turns snap/grid guides off and sets a 16-unit grid. Optional snapping attracts only within two units of a grid line; Alt bypasses snapping.
+- Minimap launcher reduced to a 20-unit button at 0.8 scale, independent of minimap scaling; removed the letter overlay.
+- Existing preferences and positions retained. All 65 simulated scenarios passed; live visual verification remains required.
+
 ## 0.4.13 — Tracker and action-bar arrangements, hover-mask rollback
 
 - Tracker groups: native, horizontal, vertical, grid cluster and radial arrangements; octagonal icon skin. Move groups through existing movers. Timer-bar viewers use rows/columns (radial converts to vertical).

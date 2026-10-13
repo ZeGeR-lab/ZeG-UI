@@ -1,7 +1,7 @@
 local addonName, ns = ...
 _G.CleanCenterUI = ns
 _G.ZeGUI = ns
-ns.version = "0.4.13"
+ns.version = "0.4.14"
 ns.WHITE = "Interface\\Buttons\\WHITE8X8"
 ns.FONT = STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
 ns.defaults = {
@@ -400,6 +400,7 @@ function ns.RefreshMovers()
         ns.Panel(mover, 0.62)
         ns.SetBorderColor(mover, unpack(ns.db.colors.accent))
     end
+    if ns.RefreshLockControls then ns.RefreshLockControls() end
     if ns.RefreshBarEditors then ns.RefreshBarEditors() end
     if ns.RefreshGuides then ns.RefreshGuides() end
 end
@@ -551,6 +552,7 @@ eventFrame:SetScript("OnEvent", function(_, event)
     if event == "PLAYER_REGEN_DISABLED" then
         -- Secure frames cannot be moved while fighting; stop an active edit session first.
         ns.unlocked = false
+        if ns.RefreshLockControls then ns.RefreshLockControls() end
         for _, mover in pairs(ns.movers) do
             if mover.dragging then mover.target:StopMovingOrSizing() mover.dragging = nil end
             mover:Hide()

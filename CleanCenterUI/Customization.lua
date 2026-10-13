@@ -2,7 +2,7 @@ local _, ns = ...
 
 ns.defaults.barSettings = {}
 for i = 1, 8 do ns.defaults.barSettings[i] = {size = 0, spacing = -1, columns = 12, shape = "inherit", layout = "horizontal", border = "soft", keyPosition = "outside"} end
-ns.defaults.editor = {snap = true, grid = 8, guides = true}
+ns.defaults.editor = {snap = false, grid = 16, guides = false, freePlacement = false}
 ns.defaults.fontFace = "standard"
 ns.defaults.fontSettings = {}
 for _, key in ipairs({"names", "health", "keybinds", "cooldowns", "casts", "chat", "auras", "tooltip", "swing", "meters"}) do
@@ -68,6 +68,10 @@ function ns.NormalizeCustomization()
         if bar.keyPosition ~= "inside" then bar.keyPosition = "outside" end
         bar.columns = Number(bar.columns, 12, 1, 12, true)
         if bar.shape ~= "square" and bar.shape ~= "triangles" and bar.shape ~= "octagons" then bar.shape = "inherit" end
+    end
+    if not db.editor.freePlacement then
+        db.editor.snap, db.editor.guides, db.editor.grid = false, false, 16
+        db.editor.freePlacement = true
     end
     db.editor.grid = Number(db.editor.grid, 8, 4, 64, true)
     if not ns.fontFaces[db.fontFace] then db.fontFace = "standard" end
@@ -147,12 +151,13 @@ function ns.SetBarPreference(row, key, value)
     ns.QueueLayout()
 end
 function ns.SnapCoordinate(value)
-    return math.floor(value / ns.db.editor.grid + 0.5) * ns.db.editor.grid
+    local nearest = math.floor(value / ns.db.editor.grid + 0.5) * ns.db.editor.grid
+    return math.abs(value - nearest) <= 2 and nearest or value
 end
 function ns.SavePosition(key, x, y, snap)
     if not ns.movers[key] or not ns.Finite(x) or not ns.Finite(y) then return false end
     x, y = ns.Clamp(x, -10000, 10000), ns.Clamp(y, -10000, 10000)
-    if snap and ns.db.editor.snap then x, y = ns.SnapCoordinate(x), ns.SnapCoordinate(y) end
+    if snap and ns.db.editor.snap and not (IsAltKeyDown and IsAltKeyDown()) then x, y = ns.SnapCoordinate(x), ns.SnapCoordinate(y) end
     ns.db.positions[key] = {x = x, y = y}
     ns.QueueLayout()
     return true
