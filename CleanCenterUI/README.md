@@ -243,3 +243,7 @@ Animated action-button effects now use shaped alpha textures without extra mask 
 ### Quiet action effects (0.4.17)
 
 Shaped buttons now suppress decorative cast, activation and hover glow animations rather than filling the icon with a solid white shape. Subtle shaped hover feedback and native cooldowns remain. Hotkey updates refresh only label styling; shown-button changes and unchanged grid updates no longer request a full HUD rebuild. Returning to square buttons restores native decorative effect opacity.
+
+### Whole-bar movement (0.4.18)
+
+Unlock frames and drag the labeled strip just above an action bar to move the entire bar. Individual slot handles remain separate. Action bars → choose bar → Move this bar opens that bar's exact position controls and unlocks its handle. Pending layout refreshes wait until a drag ends.

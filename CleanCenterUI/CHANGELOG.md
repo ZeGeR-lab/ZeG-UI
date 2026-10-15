@@ -1,3 +1,10 @@
+## 0.4.18 — Accessible whole-bar movement
+
+- Add a dedicated drag strip above each action bar so individual-button handles cannot cover the whole-bar mover.
+- Defer queued layout work while any panel or button is being dragged.
+- Add Move this bar to the action-bar settings, selecting its position controls and unlocking frames directly.
+- Cover bar 4 drag/save and pending-layout behavior in the simulator.
+
 ## 0.4.17 — Quiet activation effects and localized updates
 
 - Remove solid white activation shapes. Shaped buttons suppress decorative cast, hover and flash effects while retaining native cooldowns and subtle shaped hover feedback.

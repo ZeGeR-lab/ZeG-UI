@@ -325,7 +325,12 @@ function ns.AddMover(frame, key, label)
     if ns.movers[key] then return end
     local mover = CreateFrame("Frame", nil, UIParent)
     mover.target = frame
-    mover:SetAllPoints(frame)
+    if key:match("^bar%d+$") then
+        -- Separate the whole-bar handle from button editors and overlapping icons.
+        mover:SetPoint("BOTTOMLEFT", frame, "TOPLEFT", 0, 4)
+        mover:SetSize(180, 22)
+        mover:SetFrameLevel(200)
+    else mover:SetAllPoints(frame) end
     mover:SetFrameStrata("DIALOG")
     mover:EnableMouse(true)
     mover:RegisterForDrag("LeftButton")
@@ -554,7 +559,14 @@ eventFrame:SetScript("OnEvent", function(_, event)
     end
     ns.QueueLayout()
 end)
+function ns.IsDraggingLayout()
+    for _, mover in pairs(ns.movers) do if mover.dragging then return true end end
+    for _, entry in pairs(ns.buttonEditors or {}) do if entry.dragging then return true end end
+    return false
+end
 eventFrame:SetScript("OnUpdate", function()
+    -- Do not let delayed native layout notifications snap a moving anchor back.
+    if ns.IsDraggingLayout() then return end
     if ns.pendingProfile and not ns.unsupported and not InCombatLockdown() and not ns.blizzardEditing then
         if not ns.ConsumePendingProfile() then return end
     end

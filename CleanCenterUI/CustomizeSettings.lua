@@ -166,6 +166,12 @@ local function Bars(page)
         function() return Pref().border end, function(v) ns.SetBarPreference(window.bar,"border",v) end)
     Choice(page, "Hotkey labels", -318, {{"outside","Below icons"},{"inside","Inside icons"}},
         function() return Pref().keyPosition end, function(v) ns.SetBarPreference(window.bar,"keyPosition",v) end)
+    Button(page, "Move this bar", 0, -486, 266, function()
+        ns.selectedMover = "bar" .. window.bar
+        ns.Unlock(true)
+        ns.OpenCustomize("layout")
+    end)
+    page:SetHeight(540)
     Button(page, "Reset this bar", 0, -362, 266, function() ns.db.barSettings[window.bar] = ns.Copy(ns.defaults.barSettings[1]) Changed() end)
     Button(page, "Use on all bars", 284, -362, 266, function()
         local pref = ns.Copy(Pref()) for i = 1, 8 do ns.db.barSettings[i] = ns.Copy(pref) end Changed()

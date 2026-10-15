@@ -56,3 +56,7 @@ Performance update removes masks from animated button effects, stops full HUD re
 ### 0.4.17
 
 Removes solid white activation triangles and suppresses decorative animations for shaped action buttons. Hotkey and shown-button updates no longer rebuild the HUD; unchanged grid notifications are ignored. Native cooldowns and subtle hover feedback remain.
+
+### 0.4.18
+
+Whole-bar movers now use a separate labeled strip above the icons. Queued layout refreshes wait until dragging ends. Action bars → Move this bar selects that bar in position controls and unlocks frames. Includes a bar 4 drag/save regression check.

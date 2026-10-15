@@ -84,6 +84,18 @@ if mode == "custom_patterns" then
         bar.actionButtons[1]:UpdateHotkeys() bar:UpdateShownButtons() bar:UpdateGridLayout()
     end
     assert(not ns.pending, "Ordinary action updates still requested a full HUD rebuild")
+    ns.db.rows = 4 ns.QueueLayout() h.tick() ns.Unlock(true)
+    local mover = ns.movers.bar4
+    assert(mover and mover:IsShown() and mover.height == 22)
+    assert(({mover:GetPoint()})[3] == "TOPLEFT", "Whole-bar handle still overlaps the button editors")
+    mover:GetScript("OnDragStart")()
+    assert(ns.IsDraggingLayout())
+    ns.QueueLayout() h.tick() assert(ns.pending, "A layout rebuild ran during a bar drag")
+    mover:GetScript("OnDragStop")() h.tick()
+    assert(not ns.IsDraggingLayout() and ns.db.positions.bar4, "Bar 4 drag did not save")
+    local anchor = ns.barAnchors[MultiBarRight]
+    assert(({MultiBarRight.actionButtons[1]:GetPoint()})[2] == anchor)
+    ns.Unlock(false)
 elseif mode == "custom_profiles" then
     ns.db.unitStyles.player.classColor = false ns.db.unitStyles.player.portrait = false
     ns.db.unitStyles.player.healthColor = {0.17, 0.41, 0.83, 0.7}
