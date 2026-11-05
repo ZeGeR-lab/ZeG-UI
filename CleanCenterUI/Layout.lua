@@ -160,9 +160,22 @@ local function PlaceBar(bar, row)
         ns.AddMover(anchor, "bar" .. row, "Action bar " .. row)
     end
     anchor:SetSize(width, metrics.rowHeight)
-    ns.Position(anchor, "bar" .. row, "BOTTOM", 0, ns.BarOffset(row))
+    local stackX, stackY = 0, ns.BarOffset(row)
+    if ns.db.barStack == "horizontal" then
+        local totalWidth, precedingWidth = 0, 0
+        for index = 1, ns.db.rows do
+            local barMetrics = ns.BarMetrics(index)
+            totalWidth = totalWidth + barMetrics.width
+            if index < row then precedingWidth = precedingWidth + barMetrics.width end
+        end
+        totalWidth = totalWidth + math.max(0, ns.db.rows - 1) * ns.db.gap
+        precedingWidth = precedingWidth + math.max(0, row - 1) * ns.db.gap
+        stackX = -totalWidth / 2 + precedingWidth + width / 2
+        stackY = ns.BarOffset(1)
+    end
+    ns.Position(anchor, "bar" .. row, "BOTTOM", stackX, stackY)
     ns.SetSize(bar, width, metrics.rowHeight)
-    ns.Position(bar, "bar" .. row, "BOTTOM", 0, ns.BarOffset(row))
+    ns.Position(bar, "bar" .. row, "BOTTOM", stackX, stackY)
     -- The border is attached to the fixed presentation anchor, not to a
     -- native frame whose combat layout can be replaced by the client.
     bar.ccuiPanel = ns.Decorate(anchor, "ccuiPanel", 4)
