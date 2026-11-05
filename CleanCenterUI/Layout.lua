@@ -395,12 +395,68 @@ local function SaveChat(frame)
     ns.db.backup.chat = saved
 end
 
+local function EnsureChatResizeHandle()
+    if not ChatFrame1 then return end
+    if not ns.chatResizeHandle then
+        local handle = CreateFrame("Button", "ZeGUIChatResizeHandle", UIParent)
+        ns.chatResizeHandle = handle
+        handle:SetSize(18, 18)
+        handle:SetFrameStrata("DIALOG")
+        handle:SetFrameLevel(250)
+        handle:EnableMouse(true)
+        handle:RegisterForClicks("LeftButtonUp")
+        local grip = handle:CreateTexture(nil, "OVERLAY")
+        grip:SetAllPoints()
+        grip:SetTexture("Interface\\\\ChatFrame\\\\UI-ChatIM-SizeGrabber-Up")
+        grip:SetVertexColor(0.55, 0.75, 0.86, 0.95)
+        handle.grip = grip
+        handle:SetScript("OnMouseDown", function(self, button)
+            if button ~= "LeftButton" or InCombatLockdown() then return end
+            if ChatFrame1 and ChatFrame1.StartSizing then
+                self.dragging = true
+                ChatFrame1:SetResizable(true)
+                ChatFrame1:StartSizing("BOTTOMRIGHT")
+            end
+        end)
+        handle:SetScript("OnMouseUp", function(self)
+            if not self.dragging then return end
+            self.dragging = nil
+            if ChatFrame1 then
+                ChatFrame1:StopMovingOrSizing()
+                local width, height = ChatFrame1:GetWidth(), ChatFrame1:GetHeight()
+                if ns.Finite(width) and ns.Finite(height) then
+                    ns.db.chatSize = { width = ns.Clamp(width, 260, 1600), height = ns.Clamp(height, 100, 1200) }
+                end
+            end
+        end)
+        handle:SetScript("OnHide", function(self)
+            if self.dragging and ChatFrame1 then ChatFrame1:StopMovingOrSizing() end
+            self.dragging = nil
+        end)
+    end
+    local handle = ns.chatResizeHandle
+    handle:ClearAllPoints()
+    handle:SetPoint("BOTTOMRIGHT", ChatFrame1, "BOTTOMRIGHT", 0, 0)
+    handle:SetFrameStrata("DIALOG")
+    handle:SetFrameLevel(250)
+    handle:Show()
+    if ChatFrame1.SetResizable then ChatFrame1:SetResizable(true) end
+    if ChatFrame1.SetMinResize then ChatFrame1:SetMinResize(260, 100) end
+    if ChatFrame1.SetMaxResize then ChatFrame1:SetMaxResize(UIParent:GetWidth(), UIParent:GetHeight()) end
+end
+
 local function Chat()
-    if not ns.db.modules.chat or not ChatFrame1 then return end
+    if not ns.db.modules.chat or not ChatFrame1 then
+        if ns.chatResizeHandle then ns.chatResizeHandle:Hide() end
+        return
+    end
     SaveChat(ChatFrame1)
     ns.Reparent(ChatFrame1, ns.root)
     ns.SetScale(ChatFrame1, 1)
-    ns.SetSize(ChatFrame1, 410, 126)
+    local size = ns.db.chatSize or {}
+    local width = ns.Finite(size.width) and ns.Clamp(size.width, 260, 1600) or 410
+    local height = ns.Finite(size.height) and ns.Clamp(size.height, 100, 1200) or 126
+    ns.SetSize(ChatFrame1, width, height)
     ChatFrame1:SetClampedToScreen(true)
     ns.StyleFont(ChatFrame1, "chat", 13)
     ChatFrame1:SetFading(true)
@@ -410,6 +466,7 @@ local function Chat()
     if ChatFrame1ButtonFrame then ChatFrame1ButtonFrame:SetAlpha(0.18) end
     ns.Hook(ChatFrame1, "SetPoint", ns.QueueLayout)
     ns.AddMover(ChatFrame1, "chat", "Chat")
+    EnsureChatResizeHandle()
 end
 
 local function MapAndQuests()
