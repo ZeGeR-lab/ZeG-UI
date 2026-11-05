@@ -40,6 +40,7 @@ end
 function ns.ResetLayout()
     ns.db.positions = {}
     ns.db.barSettings = ns.Copy(ns.defaults.barSettings)
+    ns.db.barStack = "vertical"
     ns.db.rows, ns.db.scale = 2, 1
     ns.db.buttonSize, ns.db.opacity, ns.db.borders = 48, 0.82, true
     ns.db.buttonShape = "square"
@@ -260,6 +261,12 @@ SlashCmdList.CLEANCENTERUI = function(message)
     elseif command == "tooltips" then ns.OpenCustomize("auras")
     elseif command == "theme" then ns.ApplyTheme(args)
     elseif command == "bars" then ns.SetRows(args)
+    elseif command == "stack" then
+        if args ~= "horizontal" and args ~= "vertical" then
+            ns.Print("Use /zeg stack horizontal or /zeg stack vertical.")
+            return
+        end
+        ns.SetBarStack(args)
     elseif command == "shape" then ns.SetButtonShape(args)
     elseif command == "stance" then ns.SetStanceShape(args)
     elseif command == "bags" then
@@ -296,6 +303,6 @@ SlashCmdList.CLEANCENTERUI = function(message)
         ns.db[command] = ns.Clamp(value, lo, hi)
         ns.QueueLayout()
     else
-        ns.Print("/zeg | customize | trackers | meters | minimap [120-360/reset] | cooldowns on/off | shape square/triangles | stance square/triangles | bags hover/full | menu center/corner | appearance | bars 1-8 | borders on/off | unlock | lock | reset | scale 0.65-1.4 | opacity 0.25-1 | off | on | info")
+        ns.Print("/zeg | customize | trackers | meters | minimap [120-360/reset] | cooldowns on/off | shape square/triangles | stance square/triangles | bags hover/full | menu center/corner | appearance | bars 1-8 | stack horizontal/vertical | borders on/off | unlock | lock | reset | scale 0.65-1.4 | opacity 0.25-1 | off | on | info")
     end
 end
