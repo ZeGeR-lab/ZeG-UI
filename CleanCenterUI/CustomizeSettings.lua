@@ -166,6 +166,8 @@ local function Bars(page)
         function() return Pref().border end, function(v) ns.SetBarPreference(window.bar,"border",v) end)
     Choice(page, "Hotkey labels", -318, {{"outside","Below icons"},{"inside","Inside icons"}},
         function() return Pref().keyPosition end, function(v) ns.SetBarPreference(window.bar,"keyPosition",v) end)
+    Choice(page, "Bar stacking", -360, {{"vertical","Stack vertically"},{"horizontal","Stack horizontally"}},
+        function() return ns.db.barStack end, function(v) ns.SetBarStack(v) end)
     Button(page, "Move this bar", 0, -486, 266, function()
         ns.selectedMover = "bar" .. window.bar
         ns.Unlock(true)
