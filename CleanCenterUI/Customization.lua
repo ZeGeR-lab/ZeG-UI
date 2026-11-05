@@ -55,6 +55,7 @@ function ns.NormalizeCustomization()
         if style.fontSize > 0 then style.fontSize = math.max(8, style.fontSize) end
     end
     db.rows = Number(db.rows, 2, 1, 8, true)
+    if db.barStack ~= "horizontal" then db.barStack = "vertical" end
     db.scale = Number(db.scale, 1, 0.65, 1.4)
     db.buttonSize = Number(db.buttonSize, 48, 28, 64, true)
     db.gap = Number(db.gap, 6, 0, 20)
@@ -140,6 +141,14 @@ end
 function ns.RefreshFonts()
     for font, record in pairs(ns.fontRegistry) do ns.StyleFont(font, record.category, record.base) end
 end
+function ns.SetBarStack(mode)
+    if mode ~= "vertical" and mode ~= "horizontal" then return end
+    if ns.db.barStack == mode then return end
+    ns.db.barStack = mode
+    for row = 1, 8 do ns.db.positions["bar" .. row] = nil end
+    ns.QueueLayout()
+end
+
 function ns.SetBarPreference(row, key, value)
     if not ns.Finite(row) or row ~= math.floor(row) or row < 1 or row > 8 then return end
     if key == "shape" then
