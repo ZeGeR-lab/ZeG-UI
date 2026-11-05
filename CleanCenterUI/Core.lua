@@ -6,6 +6,7 @@ ns.WHITE = "Interface\\Buttons\\WHITE8X8"
 ns.FONT = STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
 ns.defaults = {
     enabled = true, rows = 2, scale = 1, buttonSize = 48, gap = 6,
+    barStack = "vertical",
     buttonShape = "square",
     stanceShape = "square", compactBags = true, menuDock = true, minimapSize = 180,
     cooldownNumbers = true,
@@ -323,7 +324,8 @@ end
 
 function ns.AddMover(frame, key, label)
     if ns.movers[key] then return end
-    local mover = CreateFrame("Frame", nil, UIParent)
+    local isBarMover = key:match("^bar%d+$") ~= nil
+    local mover = CreateFrame("Frame", nil, isBarMover and frame:GetParent() or UIParent)
     mover.target = frame
     if key:match("^bar%d+$") then
         -- Separate the whole-bar handle from button editors and overlapping icons.
@@ -388,7 +390,8 @@ function ns.RefreshMovers()
         elseif key == "tooltip" then visible = visible and ns.db.tooltip.enabled and ns.db.tooltip.anchor == "fixed"
         elseif key:match("^tracker") then visible = visible and ns.TrackerMoverVisible and ns.TrackerMoverVisible(key)
         elseif key:match("^swing") then visible = visible and ns.db.swing.enabled end
-        mover:SetScale(ns.root:GetScale())
+        local isBarMover = key:match("^bar%d+$") ~= nil
+        mover:SetScale(isBarMover and 1 or ns.root:GetScale())
         mover:SetShown(visible or false)
         ns.Panel(mover, 0.62)
         ns.SetBorderColor(mover, unpack(ns.db.colors.accent))
